@@ -49,41 +49,36 @@ class BookingDAO(BaseDAO[Booking]):
             logger.error(f"Некорректные входные данные: {e}")
             raise
 
-    async def get_available_time_slots(self, table_id: int, booking_date: date):
-        """Получает список доступных временных слотов для стола на указанную дату."""
-        try:
-            # Получаем все брони для данного стола и даты
-            bookings_query = select(self.model).filter_by(
-                table_id=table_id,
-                date=booking_date
-            )
-            bookings_result = await self._session.execute(bookings_query)
-            # Составляем набор занятых слотов (только с активными бронями)
-            booked_slots = {booking.time_slot_id for booking in bookings_result.scalars().all() if
-                            booking.status == "booked"}
-            # Получаем все доступные слоты, исключая занятые
-            available_slots_query = select(TimeSlot).filter(
-                ~TimeSlot.id.in_(booked_slots)
-            )
-            available_slots_result = await self._session.execute(available_slots_query)
-            return available_slots_result.scalars().all()
-        except SQLAlchemyError as e:
-            logger.error(f"Ошибка при получении доступных временных слотов: {e}")
 
-    async def get_bookings_with_details(self, user_id: int):
+    
+    async def get_bookings_with_details(self, room_id: int):
         """
-        Получает список всех бронирований пользователя с полной информацией о столике и временном слоте.
+        Получает список всех бронирований комнаты с полной информацией о пользователе и общей суммы платежей.
 
-        :param user_id: ID пользователя, брони которого нужно получить.
-        :return: Список объектов Booking с загруженными данными о столе и времени.
+        :param room_id: ID комнаты, брони которой нужно получить.
+        :return: Список объектов Booking с загруженными данными о пользователе и общей суммы платежей.
         """
         try:
-            query = select(self.model).options(
-                joinedload(self.model.table),
-                joinedload(self.model.time_slot)
-            ).filter_by(user_id=user_id)
+            query = (
+                select(
+                    self.model,
+                    func.sum(self.model.pays.summ).label("total_payment")
+                )
+                    .join(self.model.user)           # JOIN для пользователя
+                    .outerjoin(self.model.pays)     # LEFT JOIN для платежей
+                    .filter(self.model.room_id == room_id)
+                    .group_by(self.model.id)         # Группировка по ID бронирования
+                )
+
             result = await self._session.execute(query)
-            return result.scalars().all()
+
+            bookings = []
+            for booking, total_payment in result.all():
+                booking.total_payment = int(total_payment) if total_payment is not None else 0  # Если нет платежей → 0
+                bookings.append(booking)
+        
+            return bookings
+            
         except SQLAlchemyError as e:
             logger.error(f"Ошибка при получении бронирований с деталями: {e}")
             return []
