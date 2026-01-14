@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Dict
 from loguru import logger
-from sqlalchemy import select, update, delete, func
+from sqlalchemy import select, update, delete, func, or_, 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
 from app.dao.base import BaseDAO
@@ -23,32 +23,31 @@ class PayDAO(BaseDAO[Pay]):
 class BookingDAO(BaseDAO[Booking]):
     model = Booking
 
-    async def check_available_bookings(self, room_id: int, booking_date: date):
+    async def check_available_bookings(self, room_id: int, booking_date_start: date, booking_date_end: date):
         """Проверяет наличие существующих броней для комнаты на указанную дату."""
         try:
-            query = select(self.model).filter_by(
-                table_id=table_id,
-                date=booking_date,
-                time_slot_id=time_slot_id
+            if booking_date_start >= booking_date_end:
+                raise ValueError("Дата начала должна быть раньше даты окончания")
+
+            overlap_condition = and_(
+                self.model.room_id == room_id,
+                self.model.date_start < booking_date_end,      # A.start < B.end
+                self.model.date_end > booking_date_start       # A.end > B.start
             )
+
+            query = select(self.model).filter(overlap_condition)
             result = await self._session.execute(query)
 
-            # Если результатов нет, стол свободен
-            if not result.scalars().all():
-                return True
-
-            # Проверяем статус существующих бронирований
-            for booking in result.scalars().all():
-                if booking.status == "booked":
-                    return False  # Стол занят
-
-                # Для других статусов считаем стол свободным
-                continue
-            # Если все брони имеют неактивные статусы
-            return True
+           # Проверяем наличие хотя бы одной пересекающейся брони
+           # Используем first() вместо all() для оптимизации
+           return not result.scalars().first()
 
         except SQLAlchemyError as e:
             logger.error(f"Ошибка при проверке доступности брони: {e}")
+            raise
+        except ValueError as e:
+            logger.error(f"Некорректные входные данные: {e}")
+            raise
 
     async def get_available_time_slots(self, table_id: int, booking_date: date):
         """Получает список доступных временных слотов для стола на указанную дату."""
