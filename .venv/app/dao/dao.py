@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Dict
 from loguru import logger
 from sqlalchemy import select, update, delete, func, or_, 
@@ -44,10 +44,8 @@ class BookingDAO(BaseDAO[Booking]):
 
         except SQLAlchemyError as e:
             logger.error(f"Ошибка при проверке доступности брони: {e}")
-            raise
         except ValueError as e:
             logger.error(f"Некорректные входные данные: {e}")
-            raise
 
 
     
@@ -89,39 +87,26 @@ class BookingDAO(BaseDAO[Booking]):
         """
         try:
             # Получаем текущее время
-            now = datetime.now()
-            subquery = select(TimeSlot.start_time).where(TimeSlot.id == self.model.time_slot_id).scalar_subquery()
-            query = select(Booking.id).where(
-                Booking.date < now.date(),
-                self.model.status == "booked"
-            ).union_all(
-                select(Booking.id).where(
-                    self.model.date == now.date(),
-                    subquery < now.time(),
+            now = datetime.now(timezone.utc)
+
+            result = await self._session.execute(
+                update(self.model)
+                .where(
+                    self.model.date_start < now.date(),           # Сравниваем DateTime полностью
                     self.model.status == "booked"
                 )
+                .values(status="completed")
             )
-
-            # Выполняем запрос и получаем id бронирований, которые нужно обновить
-            result = await self._session.execute(query)
-            booking_ids_to_update = result.scalars().all()
-
-            if booking_ids_to_update:
-                # Формируем запрос на обновление статуса бронирований
-                update_query = update(Booking).where(
-                    Booking.id.in_(booking_ids_to_update)
-                ).values(status="completed")
-
-                # Выполняем запрос на обновление
-                await self._session.execute(update_query)
-
-                # Подтверждаем изменения
+        
+            # Получаем количество обновлённых строк
+            updated_count = result.rowcount
+        
+            if updated_count > 0:
                 await self._session.commit()
-
-                logger.info(f"Обновлен статус для {len(booking_ids_to_update)} бронирований на 'completed'")
+                logger.info(f"Обновлен статус для {updated_count} бронирований на 'completed'")
             else:
                 logger.info("Нет бронирований для обновления статуса.")
-
+                        
         except SQLAlchemyError as e:
             logger.error(f"Ошибка при обновлении статуса бронирований: {e}")
             await self._session.rollback()
