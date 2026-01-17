@@ -110,23 +110,6 @@ class BookingDAO(BaseDAO[Booking]):
         except SQLAlchemyError as e:
             logger.error(f"Ошибка при обновлении статуса бронирований: {e}")
             await self._session.rollback()
-
-    # отмена имеющейся брони
-    async def cancel_book(self, book_id: int):
-        try:
-            query = (
-                update(self.model)
-                .filter_by(id=book_id)
-                .values(status="canceled")
-                .execution_options(synchronize_session="fetch") # Указывает, как синхронизировать состояние сессии после обновления: "fetch" — перезагружает изменённые строки из БД
-            )
-            result = await self._session.execute(query)
-            await self._session.flush()
-            return result.rowcount
-        except SQLAlchemyError as e:
-            logger.error(f"Ошибка при отмене книги с ID {book_id}: {e}")
-            await self._session.rollback()
-            raise
     
     # удаление ммеющейся брони
     async def delete_book(self, book_id: int):
@@ -140,4 +123,3 @@ class BookingDAO(BaseDAO[Booking]):
             logger.error(f"Ошибка при удалении записей: {e}")
             raise
 
-    async def book_count(self) -> Dict[str, int]:
