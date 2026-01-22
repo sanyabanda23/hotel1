@@ -62,3 +62,93 @@ async def on_confirmation_user_yes(callback: CallbackQuery, widget, dialog_manag
         await callback.answer(f"Гость успешно добавлен!")
     await dialog_manager.next()
 
+async def on_confirmation_user_no(message: Message, dialog: Dialog, dialog_manager: DialogManager):
+    await dialog_manager.switch_to(phone_nom)
+
+async def on_confirmation_chek_user_no(message: Message, dialog: Dialog, dialog_manager: DialogManager):
+    await dialog_manager.switch_to(name)
+
+async def on_confirmation_user_yes(message: Message, dialog: Dialog, dialog_manager: DialogManager):
+    await dialog_manager.switch_to(room)
+
+async def on_room_selected(callback: CallbackQuery, widget, dialog_manager: DialogManager, item_id: str):
+    """Обработчик выбора стола."""
+    session = dialog_manager.middleware_data.get("session_without_commit") # возвращает сессию, если она есть
+    room_id = int(item_id)
+    selected_room = await RoomDAO(session).find_one_or_none_by_id(room_id)
+    dialog_manager.dialog_data["selected_room"] = selected_room
+    await callback.answer(f"Выбран номер №{room_id}")
+    await dialog_manager.next()
+
+async def process_date_start_selected(callback: CallbackQuery, widget, dialog_manager: DialogManager, selected_date: date):
+    """Обработчик выбора даты заезда."""
+    dialog_manager.dialog_data["booking_date_start"] = selected_date
+    await dialog_manager.next()
+
+async def process_date_end_selected(callback: CallbackQuery, widget, dialog_manager: DialogManager, selected_date: date):
+    """Обработчик выбора даты выезда."""
+    session = dialog_manager.middleware_data.get("session_without_commit") # возвращает сессию, если она есть
+    dialog_manager.dialog_data["booking_date_end"] = selected_date
+    dialog_manager.dialog_data["booking_date_start"] = selected_date_start
+    selected_room = dialog_manager.dialog_data["selected_room"]
+    selected_room_id = int(selected_room.id)
+    slots = await BookingDAO(session).check_available_bookings(room_id=selected_room_id, 
+                                                               booking_date_start=selected_date_start, 
+                                                               booking_date_end=selected_date)
+    if slots:
+        await callback.answer(f"Выбрана дата: с {selected_date_start} по {selected_date}")
+        await dialog_manager.next()
+    else:
+        await callback.answer(f"В выбранный период с {selected_date_start} по {selected_date}\n"
+                              f"в номере №{selected_room.id} проживают другие гости!")
+        await dialog_manager.switch_to(booking_date_start)
+
+
+async def on_cost_input(message: Message, dialog: Dialog, dialog_manager: DialogManager):
+    """Принимает информацию о стоимости проживания (с проверкой введения числа)"""
+    user_input = message.text.strip()
+    
+    # Проверка: строка состоит только из цифр (целое число)
+    if user_input.isdigit():
+        # Преобразуем в число для дальнейших расчётов
+        dialog_manager.dialog_data["cost"] = int(user_input)
+        await dialog_manager.next()  # Переход к следующему шагу
+    else:
+        # Сообщение об ошибке + просьба повторить ввод
+        await message.answer(
+            'Ошибка: введите только число без букв и символов!\n'
+            'Пример: 5000\n'
+            'Попробуй ещё раз:'
+        )
+async def on_confirmation(callback: CallbackQuery, widget, dialog_manager: DialogManager, **kwargs):
+    """Обработчик подтверждения бронирования."""
+    session = dialog_manager.middleware_data.get("session_with_commit")
+
+    # Получаем выбранные данные
+    selected_room = dialog_manager.dialog_data['selected_room']
+    selected_slot = dialog_manager.dialog_data['selected_slot']
+    booking_date = dialog_manager.dialog_data['booking_date']
+    user_id = callback.from_user.id
+    check = await BookingDAO(session).check_available_bookings(table_id=selected_table.id,
+                                                              time_slot_id=selected_slot.id,
+                                                              booking_date=booking_date)
+    if check:
+        await callback.answer("Приступаю к сохранению")
+        add_model = SNewBooking(user_id=user_id, table_id=selected_table.id,
+                               time_slot_id=selected_slot.id, date=booking_date, status="booked")
+        await BookingDAO(session).add(add_model)
+        await callback.answer(f"Бронирование успешно создано!")
+        text = "Бронь успешно сохранена🔢🍴 Со списком своих броней можно ознакомиться в меню 'МОИ БРОНИ'"
+        await callback.message.answer(text, reply_markup=main_user_kb(user_id))
+
+        admin_text = (f"Внимание! Пользователь с ID {callback.from_user.id} забронировал столик №{selected_table.id} "
+                     f"на {booking_date}. Время брони с {selected_slot.start_time} до {selected_slot.end_time}")
+        await broker.publish(admin_text, "admin_msg")               # передача данных брокеру в очередь "admin_msg"
+        await broker.publish(callback.from_user.id, "noti_user")    # передача данных брокеру в очередь "noti_user"
+
+        await dialog_manager.done() # завершает текущий диалог: удаляет его из стека задач и очищает контекст
+    else:
+        await callback.answer("Места на этот слот уже заняты!")
+        await dialog_manager.back()    
+
+
