@@ -68,7 +68,7 @@ async def on_confirmation_user_no(message: Message, dialog: Dialog, dialog_manag
 async def on_confirmation_chek_user_no(message: Message, dialog: Dialog, dialog_manager: DialogManager):
     await dialog_manager.switch_to(name)
 
-async def on_confirmation_user_yes(message: Message, dialog: Dialog, dialog_manager: DialogManager):
+async def on_confirmation_check_user_yes(message: Message, dialog: Dialog, dialog_manager: DialogManager):
     await dialog_manager.switch_to(room)
 
 async def on_room_selected(callback: CallbackQuery, widget, dialog_manager: DialogManager, item_id: str):
