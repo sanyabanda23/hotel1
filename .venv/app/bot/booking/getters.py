@@ -1,4 +1,6 @@
 from aiogram_dialog import DialogManager
+from app.dao.dao import BookingDAO, UserDAO, RoomDAO
+from app.bot.booking.schemas import SNewUser, SNewBooking
 
 async def get_confirmed_data_newuser(dialog_manager: DialogManager, **kwargs):
     """Получение данных для подтверждения внесения информации о госте в БД."""

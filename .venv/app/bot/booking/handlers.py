@@ -1,8 +1,9 @@
 from datetime import date
-from aiogram.types import CallbackQuery
-from aiogram_dialog import DialogManager
+from aiogram.types import CallbackQuery, Message
+from aiogram_dialog import DialogManager, Dialog
 from aiogram_dialog.widgets.kbd import Button
 from app.bot.booking.schemas import SNewUser, SNewBooking
+from app.bot.booking.state import BookingState
 from app.bot.user.kbs import main_user_kb
 from app.dao.dao import BookingDAO, UserDAO, RoomDAO
 
@@ -28,16 +29,16 @@ async def on_phone_input(message: Message, dialog: Dialog, dialog_manager: Dialo
     dialog_manager.dialog_data["phone_nom"] = cleaned_phone
     dialog_manager.dialog_data["user"] = await UserDAO(session).find_one_or_none(SNewUser(phone_nom=cleaned_phone))
     if dialog_manager.dialog_data["user"]:
-        await dialog_manager.switch_to(check_nom)
+        await dialog_manager.switch_to(BookingState.check_nom)
     else:
-        await dialog_manager.switch_to(name)
+        await dialog_manager.switch_to(BookingState.name)
 
 async def on_name_input(message: Message, dialog: Dialog, dialog_manager: DialogManager):
-    dialog_managermanager.dialog_data["name"] = message.text
+    dialog_manager.dialog_data["name"] = message.text
     await dialog_manager.next()
 
 async def on_description_user_input(message: Message, dialog: Dialog, dialog_manager: DialogManager):
-    dialog_managermanager.dialog_data["description_user"] = message.text
+    dialog_manager.dialog_data["description_user"] = message.text
     await dialog_manager.next()
 
 async def on_confirmation_user_yes(callback: CallbackQuery, widget, dialog_manager: DialogManager, **kwargs):
@@ -63,13 +64,13 @@ async def on_confirmation_user_yes(callback: CallbackQuery, widget, dialog_manag
     await dialog_manager.next()
 
 async def on_confirmation_user_no(message: Message, dialog: Dialog, dialog_manager: DialogManager):
-    await dialog_manager.switch_to(phone_nom)
+    await dialog_manager.switch_to(BookingState.phone_nom)
 
 async def on_confirmation_chek_user_no(message: Message, dialog: Dialog, dialog_manager: DialogManager):
-    await dialog_manager.switch_to(name)
+    await dialog_manager.switch_to(BookingState.name)
 
 async def on_confirmation_check_user_yes(message: Message, dialog: Dialog, dialog_manager: DialogManager):
-    await dialog_manager.switch_to(room)
+    await dialog_manager.switch_to(BookingState.room)
 
 async def on_room_selected(callback: CallbackQuery, widget, dialog_manager: DialogManager, item_id: str):
     """Обработчик выбора номера."""
@@ -89,7 +90,7 @@ async def process_date_end_selected(callback: CallbackQuery, widget, dialog_mana
     """Обработчик выбора даты выезда."""
     session = dialog_manager.middleware_data.get("session_without_commit") # возвращает сессию, если она есть
     dialog_manager.dialog_data["booking_date_end"] = selected_date
-    dialog_manager.dialog_data["booking_date_start"] = selected_date_start
+    selected_date_start = dialog_manager.dialog_data["booking_date_start"]
     selected_room = dialog_manager.dialog_data["selected_room"]
     selected_room_id = int(selected_room.id)
     slots = await BookingDAO(session).check_available_bookings(room_id=selected_room_id, 
@@ -101,7 +102,7 @@ async def process_date_end_selected(callback: CallbackQuery, widget, dialog_mana
     else:
         await callback.answer(f"В выбранный период с {selected_date_start} по {selected_date}\n"
                               f"в номер №{selected_room.id} будет зянят!")
-        await dialog_manager.switch_to(booking_date_start)
+        await dialog_manager.switch_to(BookingState.booking_date_start)
 
 
 async def on_cost_input(message: Message, dialog: Dialog, dialog_manager: DialogManager):
@@ -145,6 +146,6 @@ async def on_confirmation(callback: CallbackQuery, widget, dialog_manager: Dialo
         await dialog_manager.done() # завершает текущий диалог: удаляет его из стека задач и очищает контекст
     else:
         await callback.answer("Место на эти даты уже занято!")
-        await await dialog_manager.switch_to(room)    
+        await dialog_manager.switch_to(BookingState.room)    
 
 

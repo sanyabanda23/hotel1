@@ -7,8 +7,8 @@ from app.bot.booking.getters import (get_confirmed_data_newuser, get_confirmed_d
                                      get_confirmed_data_booking)
 from app.bot.booking.handlers import (cancel_logic, on_phone_input, on_name_input, on_description_user_input,
                                      on_confirmation_user_yes, on_confirmation_user_no, on_confirmation_chek_user_no,
-                                     on_confirmation_chek_user_yes, on_room_selected, process_date_start_selected
-                                     process_date_end_selected, on_cost_input, on_confirmation)
+                                     on_room_selected, process_date_start_selected,
+                                     process_date_end_selected, on_cost_input, on_confirmation, on_confirmation_check_user_yes)
 from app.bot.booking.state import BookingState
 
 def get_phone_nom_window() -> Window:
@@ -55,7 +55,7 @@ def get_confirmed_old_user_window():
         Format("{confirmed_text}"),
         Group(
             Button(Const("Все верно"), id="confirm1", on_click=on_confirmation_check_user_yes),
-            Button(Const("Нужно обновить информацию"), id="confirm2", on_click=on_confirmation_chek_user_no)
+            Button(Const("Нужно обновить информацию"), id="confirm2", on_click=on_confirmation_chek_user_no),
             Back(Const("Назад")),
             Cancel(Const("Отмена"), on_click=cancel_logic),
         ),
@@ -68,8 +68,8 @@ def get_confirmed_new_user_window():
     return Window(
         Format("{confirmed_text}"),
         Group(
-            Button(Const("Все верно"), id="confirm1", on_click=on_confirmation_user_no),
-            Button(Const("Ввести данные заново"), id="confirm2", on_click=on_confirmation_user_no)
+            Button(Const("Все верно"), id="confirm1", on_click=on_confirmation_user_yes),
+            Button(Const("Ввести данные заново"), id="confirm2", on_click=on_confirmation_user_no),
             Back(Const("Назад")),
             Cancel(Const("Отмена"), on_click=cancel_logic),
         ),
