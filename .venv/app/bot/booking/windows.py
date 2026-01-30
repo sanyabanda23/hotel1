@@ -77,7 +77,7 @@ def get_confirmed_new_user_window():
         getter=get_confirmed_data_newuser
     )
 
-def get_table_window() -> Window:
+def get_room_window() -> Window:
     """Окно выбора комнаты."""
     return Window(
         Format("{text_room}"),

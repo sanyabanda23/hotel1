@@ -61,7 +61,7 @@ async def on_confirmation_user_yes(callback: CallbackQuery, widget, dialog_manag
                                name=user_name, description=description_user)
         await UserDAO(session).add(add_model)
         await callback.answer(f"Гость успешно добавлен!")
-    await dialog_manager.next()
+    await dialog_manager.switch_to(BookingState.room)
 
 async def on_confirmation_user_no(message: Message, dialog: Dialog, dialog_manager: DialogManager):
     await dialog_manager.switch_to(BookingState.phone_nom)
