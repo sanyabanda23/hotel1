@@ -4,7 +4,7 @@ from aiogram_dialog import DialogManager, Dialog
 from aiogram_dialog.widgets.kbd import Button
 from app.bot.booking.schemas import SNewUser, SNewBooking
 from app.bot.booking.state import BookingState
-from app.bot.user.kbs import main_user_kb
+from app.bot.admin.kbs import main_user_kb
 from app.dao.dao import BookingDAO, UserDAO, RoomDAO
 
 async def cancel_logic(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -63,13 +63,13 @@ async def on_confirmation_user_yes(callback: CallbackQuery, widget, dialog_manag
         await callback.answer(f"Гость успешно добавлен!")
     await dialog_manager.switch_to(BookingState.room)
 
-async def on_confirmation_user_no(message: Message, dialog: Dialog, dialog_manager: DialogManager):
+async def on_confirmation_user_no(callback: CallbackQuery, dialog: Dialog, dialog_manager: DialogManager):
     await dialog_manager.switch_to(BookingState.phone_nom)
 
-async def on_confirmation_chek_user_no(message: Message, dialog: Dialog, dialog_manager: DialogManager):
+async def on_confirmation_chek_user_no(callback: CallbackQuery, dialog: Dialog, dialog_manager: DialogManager):
     await dialog_manager.switch_to(BookingState.name)
 
-async def on_confirmation_check_user_yes(message: Message, dialog: Dialog, dialog_manager: DialogManager):
+async def on_confirmation_check_user_yes(callback: CallbackQuery, dialog: Dialog, dialog_manager: DialogManager):
     await dialog_manager.switch_to(BookingState.room)
 
 async def on_room_selected(callback: CallbackQuery, widget, dialog_manager: DialogManager, item_id: str):
@@ -121,6 +121,7 @@ async def on_cost_input(message: Message, dialog: Dialog, dialog_manager: Dialog
             'Пример: 5000\n'
             'Попробуй ещё раз:'
         )
+        
 async def on_confirmation(callback: CallbackQuery, widget, dialog_manager: DialogManager, **kwargs):
     """Обработчик подтверждения бронирования."""
     session = dialog_manager.middleware_data.get("session_with_commit")
@@ -141,7 +142,7 @@ async def on_confirmation(callback: CallbackQuery, widget, dialog_manager: Dialo
         await BookingDAO(session).add(add_model)
         await callback.answer(f"Бронирование успешно создано!")
         text = "Бронь успешно сохранена🔢!"
-        await callback.message.answer(text, reply_markup=main_user_kb(user_id))
+        await callback.message.answer(text, reply_markup=main_user_kb(callback.from_user.id))
 
         await dialog_manager.done() # завершает текущий диалог: удаляет его из стека задач и очищает контекст
     else:

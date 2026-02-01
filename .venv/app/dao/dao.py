@@ -1,7 +1,7 @@
 from datetime import date, datetime, timezone
 from typing import Dict
 from loguru import logger
-from sqlalchemy import select, update, delete, func, or_, 
+from sqlalchemy import select, update, delete, func, and_, extract 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
 from app.dao.base import BaseDAO
@@ -38,9 +38,9 @@ class BookingDAO(BaseDAO[Booking]):
             query = select(self.model).filter(overlap_condition)
             result = await self._session.execute(query)
 
-           # Проверяем наличие хотя бы одной пересекающейся брони
-           # Используем first() вместо all() для оптимизации
-           return not result.scalars().first()
+            # Проверяем наличие хотя бы одной пересекающейся брони
+            # Используем first() вместо all() для оптимизации
+            return not result.scalars().first()
 
         except SQLAlchemyError as e:
             logger.error(f"Ошибка при проверке доступности брони: {e}")
@@ -49,10 +49,10 @@ class BookingDAO(BaseDAO[Booking]):
 
 
     
-    async def get_bookings_with_details(self, room_id: int):
+    async def get_bookings_with_details_year(self, room_id: int, year: int):
         """
         Получает список всех бронирований комнаты с полной информацией о пользователе и общей суммы платежей.
-
+        За указаный год
         :param room_id: ID комнаты, брони которой нужно получить.
         :return: Список объектов Booking с загруженными данными о пользователе и общей суммы платежей.
         """
@@ -64,7 +64,39 @@ class BookingDAO(BaseDAO[Booking]):
                 )
                     .join(self.model.user)           # JOIN для пользователя
                     .outerjoin(self.model.pays)     # LEFT JOIN для платежей
-                    .filter(self.model.room_id == room_id)
+                    .filter(self.model.room_id == room_id, extract('year', self.model.date_start) == year)
+                    .group_by(self.model.id)         # Группировка по ID бронирования
+                )
+
+            result = await self._session.execute(query)
+
+            bookings = []
+            for booking, total_payment in result.all():
+                booking.total_payment = int(total_payment) if total_payment is not None else 0  # Если нет платежей → 0
+                bookings.append(booking)
+        
+            return bookings
+            
+        except SQLAlchemyError as e:
+            logger.error(f"Ошибка при получении бронирований с деталями: {e}")
+            return []
+        
+    async def get_bookings_with_details(self, room_id: int):
+        """
+        Получает список всех бронирований комнаты с полной информацией о пользователе и общей суммы платежей.
+        За текущий период со дня запроса
+        :param room_id: ID комнаты, брони которой нужно получить.
+        :return: Список объектов Booking с загруженными данными о пользователе и общей суммы платежей.
+        """
+        try:
+            query = (
+                select(
+                    self.model,
+                    func.sum(self.model.pays.summ).label("total_payment")
+                )
+                    .join(self.model.user)           # JOIN для пользователя
+                    .outerjoin(self.model.pays)     # LEFT JOIN для платежей
+                    .filter(self.model.room_id == room_id, self.model.date_end >= datetime.now)
                     .group_by(self.model.id)         # Группировка по ID бронирования
                 )
 
