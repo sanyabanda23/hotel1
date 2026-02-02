@@ -7,6 +7,7 @@ from aiogram.fsm.storage.redis import RedisStorage
 from aiogram_dialog import setup_dialogs
 from loguru import logger
 from app.bot.booking.dialog import booking_dialog
+from app.bot.my_bookings.dialog import list_bookings_dialog
 from app.bot.admin.router import router as admin_router
 from app.config import settings
 from app.dao.database_midlware import DatabaseMiddlewareWithoutCommit, DatabaseMiddlewareWithCommit
@@ -42,6 +43,7 @@ async def start_bot():
     dp.update.middleware.register(DatabaseMiddlewareWithCommit())
     await set_commands()
     dp.include_router(booking_dialog)
+    dp.include_router(list_bookings_dialog)
     dp.include_router(admin_router)
 
     for admin_id in settings.ADMIN_IDS:

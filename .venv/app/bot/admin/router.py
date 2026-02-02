@@ -21,7 +21,7 @@ async def cmd_start(message: Message, session_with_commit: AsyncSession, state: 
     await message.answer(text, reply_markup=main_user_kb(user_id))
 
 @router.callback_query(F.data == "book_room")
-async def start_dialog(call: CallbackQuery, dialog_manager: DialogManager):
+async def start_dialog(call: CallbackQuery, dialog_manager: DialogManager, state: FSMContext):
     await call.answer("Бронирование номера")
-    await dialog_manager.start(state=BookingState.phone_nom, mode=StartMode.RESET_STACK)
-
+    if await dialog_manager.start(state=BookingState.phone_nom, mode=StartMode.RESET_STACK):
+        

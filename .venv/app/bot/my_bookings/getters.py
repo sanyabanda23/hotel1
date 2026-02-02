@@ -10,6 +10,11 @@ async def get_all_rooms(dialog_manager: DialogManager, **kwargs):
     return {"rooms": [room.to_dict() for room in rooms],
             "text_room": f'Всего найдено {len(rooms)} номеров. Выбери нужный по описанию'}
 
+async def get_one_room(dialog_manager: DialogManager, **kwargs):
+    """Получение инфы о номере."""
+    room = dialog_manager.dialog_data['selected_room']
+    return {"room": room.id}
+
 async def get_all_last_bookings(dialog_manager: DialogManager, **kwargs):
     """Получение списка номеров."""
     bookings = dialog_manager.dialog_data["last_bookings"]
