@@ -4,7 +4,7 @@ from aiogram_dialog import DialogManager, Dialog
 from aiogram_dialog.widgets.kbd import Button
 from app.bot.booking.schemas import SNewUser, SNewBooking
 from app.bot.my_bookings.state import MyBookingState
-from app.bot.admin.kbs import main_user_kb
+from app.bot.admin.kbs import main_user_kb, yes_no_kb
 from app.dao.dao import BookingDAO, UserDAO, RoomDAO
 
 async def cancel_logic(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -26,11 +26,11 @@ async def on_list_last_bookings(callback: CallbackQuery, dialog: Dialog, dialog_
     selected_room = dialog_manager.dialog_data["selected_room"]
     dialog_manager.dialog_data["all_bookings"] = await BookingDAO(session).get_bookings_with_details(selected_room.id)
     if dialog_manager.dialog_data["all_bookings"]:
-        text = f'Найдено {len(dialog_manager.dialog_data["all_bookings"])} записей!'
-        await callback.message.answer(text)
+        text = f'Найдено {len(dialog_manager.dialog_data["all_bookings"])} записей!\n' \
+               f'Вывести их?'
+        await callback.message.answer(text, reply_markup=yes_no_kb(callback.from_user.id))
         await dialog_manager.done()
     else:
-        selected_room = dialog_manager.dialog_data["selected_room"]
         text = f'По номеру №{selected_room.id} отсутствует информация о бронированиях.'
         await callback.message.answer(text)
         await dialog_manager.switch_to(MyBookingState.room)
@@ -47,17 +47,17 @@ async def on_list_all_bookings(message: Message, dialog: Dialog, dialog_manager:
         session = dialog_manager.middleware_data.get("session_without_commit")
         dialog_manager.dialog_data["year"] = int(user_input)
         selected_room = dialog_manager.dialog_data["selected_room"]
+        year = dialog_manager.dialog_data["year"]
         dialog_manager.dialog_data["all_bookings"] = await BookingDAO(session).get_bookings_with_details_year(
                                                             room_id=selected_room.id,
-                                                            year=dialog_manager.dialog_data["year"]
+                                                            year=year
                                                             )
         if dialog_manager.dialog_data["all_bookings"]:
-            text = f'Найдено {len(dialog_manager.dialog_data["all_bookings"])} записей!'
-            await message.answer(text)
+            text = f'Найдено {len(dialog_manager.dialog_data["all_bookings"])} записей за {year} год.!\n' \
+                   f'Вывести их?'
+            await message.answer(text, reply_markup=yes_no_kb(message.from_user.id))
             await dialog_manager.done()
         else:
-            selected_room = dialog_manager.dialog_data["selected_room"]
-            year = dialog_manager.dialog_data["year"]
             text = f'По номеру №{selected_room.id} отсутствует информация о бронированиях за {year} год.'
             await message.answer(text)
             await dialog_manager.switch_to(MyBookingState.room)
