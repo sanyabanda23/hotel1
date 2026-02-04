@@ -1,9 +1,11 @@
 from datetime import date
 from aiogram.types import CallbackQuery, Message
+from aiogram.fsm.context import FSMContext
 from aiogram_dialog import DialogManager, Dialog
 from aiogram_dialog.widgets.kbd import Button
 from app.bot.booking.schemas import SNewUser, SNewBooking
 from app.bot.my_bookings.state import MyBookingState
+from app.bot.admin.state import OutputBookingsState
 from app.bot.admin.kbs import main_user_kb, yes_no_kb
 from app.dao.dao import BookingDAO, UserDAO, RoomDAO
 
@@ -38,7 +40,7 @@ async def on_list_last_bookings(callback: CallbackQuery, dialog: Dialog, dialog_
 async def on_all_bookings(callback: CallbackQuery, dialog: Dialog, dialog_manager: DialogManager):
     await dialog_manager.switch_to(MyBookingState.year)
 
-async def on_list_all_bookings(message: Message, dialog: Dialog, dialog_manager: DialogManager):
+async def on_list_all_bookings(message: Message, dialog: Dialog, dialog_manager: DialogManager, state: FSMContext):
     user_input = message.text.strip()
     
     # Проверка: строка состоит только из цифр (целое число)
@@ -56,6 +58,9 @@ async def on_list_all_bookings(message: Message, dialog: Dialog, dialog_manager:
             text = f'Найдено {len(dialog_manager.dialog_data["all_bookings"])} записей за {year} год.!\n' \
                    f'Вывести их?'
             await message.answer(text, reply_markup=yes_no_kb(message.from_user.id))
+            all_bookings = dialog_manager.dialog_data["all_bookings"]
+            await state.set_state(OutputBookingsState.dialog_start)
+            await state.update_data(all=all_bookings)
             await dialog_manager.done()
         else:
             text = f'По номеру №{selected_room.id} отсутствует информация о бронированиях за {year} год.'
