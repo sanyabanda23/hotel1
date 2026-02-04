@@ -23,7 +23,7 @@ async def on_room_selected(callback: CallbackQuery, widget, dialog_manager: Dial
     await callback.answer(f"Выбран номер №{room_id}")
     await dialog_manager.next()
 
-async def on_list_last_bookings(callback: CallbackQuery, dialog: Dialog, dialog_manager: DialogManager):
+async def on_list_last_bookings(callback: CallbackQuery, dialog: Dialog, dialog_manager: DialogManager, state: FSMContext):
     session = dialog_manager.middleware_data.get("session_without_commit")
     selected_room = dialog_manager.dialog_data["selected_room"]
     dialog_manager.dialog_data["all_bookings"] = await BookingDAO(session).get_bookings_with_details(selected_room.id)
@@ -31,6 +31,9 @@ async def on_list_last_bookings(callback: CallbackQuery, dialog: Dialog, dialog_
         text = f'Найдено {len(dialog_manager.dialog_data["all_bookings"])} записей!\n' \
                f'Вывести их?'
         await callback.message.answer(text, reply_markup=yes_no_kb(callback.from_user.id))
+        all_bookings = dialog_manager.dialog_data["all_bookings"]
+        await state.set_state(OutputBookingsState.dialog_start)
+        await state.update_data(all=all_bookings)
         await dialog_manager.done()
     else:
         text = f'По номеру №{selected_room.id} отсутствует информация о бронированиях.'

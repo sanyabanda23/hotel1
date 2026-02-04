@@ -24,3 +24,14 @@ def yes_no_kb(user_id: int) -> InlineKeyboardMarkup:
     
     kb.adjust(1)            # Устанавливает количество кнопок в одном ряду (строке) клавиатуры
     return kb.as_markup()
+
+def cancel_pay_book_kb(user_id: int, book_id: int, home_page: bool = False) -> InlineKeyboardMarkup:
+    kb = InlineKeyboardBuilder()
+    
+    if user_id in settings.ADMIN_IDS:
+        kb.add(InlineKeyboardButton(text="Добавить платеж", callback_data=f"pay_book_{book_id}"))
+        kb.add(InlineKeyboardButton(text="Удалить запись", callback_data=f"dell_book_{book_id}"))
+        if home_page:
+            kb.add(InlineKeyboardButton(text="🏠 На главную", callback_data="back_home"))
+    kb.adjust(1)
+    return kb.as_markup()
