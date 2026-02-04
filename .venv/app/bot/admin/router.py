@@ -79,5 +79,10 @@ async def yes_output_bookings(callback: CallbackQuery, state: FSMContext):
     await state.set_state(OutputBookingsState.books)
 
 
-
+@router.callback_query(F.data.startswith("dell_book_"), OutputBookingsState.books)
+async def delete_booking(call: CallbackQuery, session_with_commit: AsyncSession, state: FSMContext):
+    book_id = int(call.data.split("_")[-1])
+    await BookingDAO(session_with_commit).delete_book(book_id)
+    await call.answer("Запись о брони удалена!", show_alert=True)
+    await call.message.delete()        # Асинхронный метод, отправляющий запрос к API Telegram на удаление сообщения
         
