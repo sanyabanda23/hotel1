@@ -2,8 +2,9 @@ from aiogram import Router, F
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram_dialog import DialogManager, StartMode
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.booking.state import BookingState
@@ -12,7 +13,7 @@ from app.bot.admin.state import OutputBookingsState, ClearState
 from app.bot.admin.schemas import SNewPay
 from app.bot.admin.kbs import main_user_kb, cancel_pay_book_kb, clear_yes_no_kb
 from app.config import settings
-from app.dao.dao import UserDAO, BookingDAO, PayDAO
+from app.dao.dao import UserDAO, BookingDAO, PayDAO, RoomDAO
 
 router = Router()
 from app.bot.create_bot import bot as b
@@ -139,5 +140,18 @@ async def delete_msg(msg: Message, state: FSMContext):
 
 ### Реакция на кнопку Ссылка на фото номеров
 @router.callback_query(F.data == "url_photo")
-async def copy_url_photo(call: CallbackQuery, state: FSMContext):
+async def copy_url_photo(call: CallbackQuery, session_without_commit: AsyncSession, state: FSMContext):
+    rooms = await RoomDAO(session_without_commit).find_all()
+    def room_url_kb(user_id: int) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardBuilder()
+
+        if user_id in settings.ADMIN_IDS:
+            for room in rooms:
+                kb.add(InlineKeyboardButton(text=f"Номер №{room.id}", copy_text=room.url))
+    
+        kb.adjust(2)            # Устанавливает количество кнопок в одном ряду (строке) клавиатуры
+        return kb.as_markup()
+    text = "Выберите номер из списка ниже — ссылка на фотографии скопируется автоматически."
+    await call.message.answer(text, reply_markup=room_url_kb(call.from_user.id))
+    await call.answer()
     
