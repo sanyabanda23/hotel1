@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from app.config import settings
 
@@ -35,3 +35,7 @@ def cancel_pay_book_kb(user_id: int, book_id: int, home_page: bool = False) -> I
             kb.add(InlineKeyboardButton(text="🏠 На главную", callback_data="back_home"))
     kb.adjust(1)
     return kb.as_markup()
+
+clear_yes_no_kb = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text="Да")], 
+                                                [KeyboardButton(text="Нет")]], 
+                                                one_time_keyboard=True, resize_keyboard=True)
