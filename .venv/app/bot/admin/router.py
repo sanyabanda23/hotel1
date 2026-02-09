@@ -9,9 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.booking.state import BookingState
 from app.bot.my_bookings.state import MyBookingState
-from app.bot.admin.state import OutputBookingsState, ClearState
-from app.bot.admin.schemas import SNewPay
-from app.bot.admin.kbs import main_user_kb, cancel_pay_book_kb, clear_yes_no_kb
+from app.bot.admin.state import OutputBookingsState, ClearState, CheckUserState
+from app.bot.admin.schemas import SNewPay, SCheckUser
+from app.bot.admin.kbs import main_user_kb, cancel_pay_book_kb, clear_yes_no_kb, info_kb
 from app.config import settings
 from app.dao.dao import UserDAO, BookingDAO, PayDAO, RoomDAO
 
@@ -107,7 +107,7 @@ async def input_pay_booking(msg: Message, session_with_commit: AsyncSession, sta
     await state.clear()
 
 @router.callback_query(F.data == "back_home", OutputBookingsState.books)
-async def delete_booking(call: CallbackQuery, state: FSMContext):
+async def back_home(call: CallbackQuery, state: FSMContext):
     await state.clear()
     await call.message.answer('Главное меню', reply_markup=main_user_kb(call.from_user.id))
 
@@ -154,4 +154,52 @@ async def copy_url_photo(call: CallbackQuery, session_without_commit: AsyncSessi
     text = "Выберите номер из списка ниже — ссылка на фотографии скопируется автоматически."
     await call.message.answer(text, reply_markup=room_url_kb(call.from_user.id))
     await call.answer()
+
+### Реакция на вызов Отчеты
+@router.callback_query(F.data == "info")
+async def info(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    text = 'Добро пожаловать в раздел формирования отчётов!\n' \
+           'С помощью кнопок ниже вы можете:'
+    await callback.message.answer(text,
+                                  reply_markup=info_kb(callback.from_user.id))
+
+@router.callback_query(F.data == "back_home_info")
+async def back_home_info(call: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await call.message.edit_text('Главное меню', reply_markup=main_user_kb(call.from_user.id))
+
+@router.callback_query(F.data == "check_user")
+async def check_user(call: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await call.message.answer('Введи номер телефона гостя.')
+    await state.set_state(CheckUserState.phone_nom)
+
+@router.message(F.text, CheckUserState.phone_nom)
+async def search_user(msg: Message, state: FSMContext, session_without_commit: AsyncSession):
+    cleaned_phone = (
+        msg.text
+        .replace(' ', '').replace('(', '').replace(')', '')
+        .replace('+7', '8').replace('-', '')
+    )
     
+    # Проверка: 11 цифр, начинается с 8
+    if (cleaned_phone.isdigit() and len(cleaned_phone) == 11 and cleaned_phone.startswith('8')):
+        user = await UserDAO(session_without_commit).find_one_or_none(SCheckUser(phone_nom=cleaned_phone))
+        if user:
+            confirmed_text = (
+                    f"<b>Информация о госте:</b>\n\n"
+                    f"  - 🙋‍♂️ Имя гостя: {user.username}\n"
+                    f"  - 📱 Контактный телефон: {user.phone_nom}\n"
+                    f"  - ℹ️ Описание: {user.description}\n\n"
+                    )
+            await msg.answer(confirmed_text, reply_markup=info_kb(msg.from_user.id))
+            await state.clear()
+        else:
+            await msg.answer("Гость с такиим номером телефона не проживал!", reply_markup=info_kb(msg.from_user.id))
+            await state.clear()
+    else:
+        await msg.answer("Некорректный формат номера. Введите номер в формате +7ХХХХХХХХХХХ.")
+        await state.set_state(CheckUserState.phone_nom)
+
+

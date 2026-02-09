@@ -39,3 +39,12 @@ def cancel_pay_book_kb(user_id: int, book_id: int, home_page: bool = False) -> I
 clear_yes_no_kb = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text="Да")], 
                                                 [KeyboardButton(text="Нет")]], 
                                                 one_time_keyboard=True, resize_keyboard=True)
+
+def info_kb(user_id: int) -> InlineKeyboardMarkup:
+    kb = InlineKeyboardBuilder()
+    
+    if user_id in settings.ADMIN_IDS:
+        kb.add(InlineKeyboardButton(text="Проверить гостя", callback_data=f"check_user"))
+        kb.add(InlineKeyboardButton(text="🏠 На главную", callback_data="back_home_info"))
+    kb.adjust(1)
+    return kb.as_markup()

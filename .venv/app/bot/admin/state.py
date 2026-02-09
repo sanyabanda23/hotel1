@@ -9,4 +9,6 @@ class OutputBookingsState(StatesGroup):
 class ClearState(StatesGroup):
     delete = State()
 
+class CheckUserState(StatesGroup):
+    phone_nom = State()
     
