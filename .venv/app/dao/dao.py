@@ -48,7 +48,39 @@ class BookingDAO(BaseDAO[Booking]):
             logger.error(f"Некорректные входные данные: {e}")
 
 
-    
+    async def get_bookings_with_details_date_start(self):
+        """
+        Получает список всех бронирований комнаты с полной информацией о пользователе и общей суммы платежей.
+        За указаный год
+        :param room_id: ID комнаты, брони которой нужно получить.
+        :return: Список объектов Booking с загруженными данными о пользователе и общей суммы платежей.
+        """
+        
+        try:
+            query = (
+                select(
+                    self.model,
+                    func.sum(self.model.pays.summ).label("total_payment")
+                )
+                    .join(self.model.user)           # JOIN для пользователя
+                    .outerjoin(self.model.pays)     # LEFT JOIN для платежей
+                    .filter(self.model.room_id == room_id, extract('year', self.model.date_start) == year)
+                    .group_by(self.model.id)         # Группировка по ID бронирования
+                )
+
+            result = await self._session.execute(query)
+
+            bookings = []
+            for booking, total_payment in result.all():
+                booking.total_payment = int(total_payment) if total_payment is not None else 0  # Если нет платежей → 0
+                bookings.append(booking)
+        
+            return bookings
+            
+        except SQLAlchemyError as e:
+            logger.error(f"Ошибка при получении бронирований с деталями: {e}")
+            return []
+        
     async def get_bookings_with_details_year(self, room_id: int, year: int):
         """
         Получает список всех бронирований комнаты с полной информацией о пользователе и общей суммы платежей.
@@ -80,7 +112,7 @@ class BookingDAO(BaseDAO[Booking]):
         except SQLAlchemyError as e:
             logger.error(f"Ошибка при получении бронирований с деталями: {e}")
             return []
-        
+
     async def get_bookings_with_details(self, room_id: int):
         """
         Получает список всех бронирований комнаты с полной информацией о пользователе и общей суммы платежей.
