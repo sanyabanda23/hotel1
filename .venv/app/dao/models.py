@@ -44,5 +44,4 @@ class Pay(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     summ: Mapped[int]
     id_booking: Mapped[int] = mapped_column(BigInteger, ForeignKey("bookings.id"))
-    bookings: Mapped[list["Booking"]] = relationship("Booking", back_populates="room")
     booking: Mapped["Booking"] = relationship("Booking", back_populates="pays")
