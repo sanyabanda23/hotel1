@@ -50,7 +50,16 @@ async def no_output_bookings(callback: CallbackQuery, state: FSMContext):
 async def yes_output_bookings(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     all_bookings = data.get("all")
-    for book in all_bookings:                                         
+    
+    if not all_bookings:
+        await callback.message.answer("Нет бронирований для отображения.", 
+                                      reply_markup=main_user_kb(callback.from_user.id))
+        await state.clear()
+        return
+    
+    last_booking_id = all_bookings[-1][0].id
+
+    for book, total_payment in all_bookings:                                         
         # Форматируем дату и время для удобства чтения
         booking_date_start = book.date_start.strftime("%d.%m.%Y")  # День.Месяц.Год
         booking_date_end = book.date_end.strftime("%d.%m.%Y")
@@ -58,9 +67,9 @@ async def yes_output_bookings(callback: CallbackQuery, state: FSMContext):
         booking_room = book.room_id
         booking_status = book.status
         booking_cost = book.cost
-        booking_pay = book.total_payment
+        booking_pay = total_payment
         booking_user = book.user.username
-        phone_nomber = book.user.phone_nom
+        phone_number = book.user.phone_nom
         description = book.user.description
         if booking_status == "booked":
             status_text = "Забронирован"
@@ -72,13 +81,13 @@ async def yes_output_bookings(callback: CallbackQuery, state: FSMContext):
                         f"💰 Стоимость проживания: {booking_cost} рублей\n"
                         f"💸 Внесена оплата: {booking_pay} рублей\n"
                         f"  - 👤 Имя гостя: {booking_user}\n"
-                        f"  - 📱 Контактный телефон: {phone_nomber}\n"
+                        f"  - 📱 Контактный телефон: {phone_number}\n"
                         f"  - 📝 Описание: {description}")
-        if all_bookings[-1].id == booking_number:
+        if last_booking_id == booking_number:
             home_page = True
         await callback.message.answer(message_text, reply_markup=cancel_pay_book_kb(
                                                                     user_id=callback.from_user.id,
-                                                                    book_id=book.id, 
+                                                                    book_id=booking_number, 
                                                                     home_page=home_page))
     await state.set_state(OutputBookingsState.books)
 
