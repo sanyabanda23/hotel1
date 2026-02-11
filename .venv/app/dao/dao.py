@@ -51,31 +51,35 @@ class BookingDAO(BaseDAO[Booking]):
     async def get_bookings_with_details_date_start(self):
         """
         Получает список всех бронирований комнаты с полной информацией о пользователе и общей суммы платежей.
-        За указаный год
-        :param room_id: ID комнаты, брони которой нужно получить.
+        Где дата заезда равна текущему дню
         :return: Список объектов Booking с загруженными данными о пользователе и общей суммы платежей.
         """
-        
+        now = datetime.now(timezone.utc)
         try:
             query = (
                 select(
                     self.model,
-                    func.sum(self.model.pays.summ).label("total_payment")
+                    func.sum(Pay.summ).label("total_payment")
                 )
                     .join(self.model.user)           # JOIN для пользователя
+                    .join(self.model.room)
                     .outerjoin(self.model.pays)     # LEFT JOIN для платежей
-                    .filter(self.model.room_id == room_id, extract('year', self.model.date_start) == year)
+                    .filter(self.model.date_start == now.date())
                     .group_by(self.model.id)         # Группировка по ID бронирования
                 )
 
             result = await self._session.execute(query)
-
-            bookings = []
-            for booking, total_payment in result.all():
-                booking.total_payment = int(total_payment) if total_payment is not None else 0  # Если нет платежей → 0
-                bookings.append(booking)
+            rows = result.all()
+            
+            if rows:
+                bookings = []
+                for booking, total_payment in rows:
+                    total = int(total_payment) if total_payment is not None else 0  # Если нет платежей → 0
+                    bookings.append((booking, total))
         
-            return bookings
+                return bookings
+            else:
+                return []
             
         except SQLAlchemyError as e:
             logger.error(f"Ошибка при получении бронирований с деталями: {e}")
@@ -92,22 +96,27 @@ class BookingDAO(BaseDAO[Booking]):
             query = (
                 select(
                     self.model,
-                    func.sum(self.model.pays.summ).label("total_payment")
+                    func.sum(Pay.summ).label("total_payment")
                 )
                     .join(self.model.user)           # JOIN для пользователя
+                    .join(self.model.room)
                     .outerjoin(self.model.pays)     # LEFT JOIN для платежей
                     .filter(self.model.room_id == room_id, extract('year', self.model.date_start) == year)
                     .group_by(self.model.id)         # Группировка по ID бронирования
                 )
 
             result = await self._session.execute(query)
-
-            bookings = []
-            for booking, total_payment in result.all():
-                booking.total_payment = int(total_payment) if total_payment is not None else 0  # Если нет платежей → 0
-                bookings.append(booking)
+            rows = result.all()
+            
+            if rows:
+                bookings = []
+                for booking, total_payment in rows:
+                    total = int(total_payment) if total_payment is not None else 0  # Если нет платежей → 0
+                    bookings.append((booking, total))
         
-            return bookings
+                return bookings
+            else:
+                return []
             
         except SQLAlchemyError as e:
             logger.error(f"Ошибка при получении бронирований с деталями: {e}")
@@ -120,6 +129,7 @@ class BookingDAO(BaseDAO[Booking]):
         :param room_id: ID комнаты, брони которой нужно получить.
         :return: Список объектов Booking с загруженными данными о пользователе и общей суммы платежей.
         """
+        now = datetime.now(timezone.utc)
         try:
             query = (
                 select(
@@ -127,19 +137,26 @@ class BookingDAO(BaseDAO[Booking]):
                     func.sum(self.model.pays.summ).label("total_payment")
                 )
                     .join(self.model.user)           # JOIN для пользователя
+                    .join(self.model.room)
                     .outerjoin(self.model.pays)     # LEFT JOIN для платежей
-                    .filter(self.model.room_id == room_id, self.model.date_end >= datetime.now)
+                    .filter(self.model.room_id == room_id, self.model.date_end >= now)
                     .group_by(self.model.id)         # Группировка по ID бронирования
                 )
 
             result = await self._session.execute(query)
+            rows = result.all()
+            
+            if rows:
+                bookings = []
+                for booking, total_payment in rows:
+                    total = int(total_payment) if total_payment is not None else 0  # Если нет платежей → 0
+                    bookings.append((booking, total))
 
-            bookings = []
-            for booking, total_payment in result.all():
-                booking.total_payment = int(total_payment) if total_payment is not None else 0  # Если нет платежей → 0
-                bookings.append(booking)
-        
-            return bookings
+                logger.info(f"Для комнаты №{room_id} найдено {len(bookings)} бронирований за указанный период")
+                return bookings
+            else:
+                logger.info(f"Для комнаты №{room_id} нет бронирований за указанный период")
+                return []
             
         except SQLAlchemyError as e:
             logger.error(f"Ошибка при получении бронирований с деталями: {e}")

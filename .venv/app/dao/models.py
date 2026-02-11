@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from sqlalchemy import BigInteger, String
 from app.dao.database import Base
 from sqlalchemy import Integer, Date, ForeignKey
@@ -27,11 +27,11 @@ class Room(Base):
 class Booking(Base):
     __tablename__ = "bookings"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"))
     room_id: Mapped[int] = mapped_column(Integer, ForeignKey("rooms.id"))
-    date_start: Mapped[datetime] = mapped_column(Date)
-    date_end: Mapped[datetime] = mapped_column(Date)
+    date_start: Mapped[date] = mapped_column(Date)
+    date_end: Mapped[date] = mapped_column(Date)
     status: Mapped[str]
     cost: Mapped[int]
     user: Mapped["User"] = relationship("User", back_populates="bookings")
