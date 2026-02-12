@@ -16,7 +16,6 @@ from app.config import settings
 from app.dao.dao import UserDAO, BookingDAO, PayDAO, RoomDAO
 
 router = Router()
-from app.bot.create_bot import bot as b
 
 @router.message(CommandStart())
 async def cmd_start(message: Message, session_with_commit: AsyncSession, state: FSMContext):
@@ -111,7 +110,7 @@ async def input_pay_booking(msg: Message, session_with_commit: AsyncSession, sta
     data_pay = await state.get_data()
     add_model = SNewPay(summ=int(data_pay.get('sum_pay')), id_booking=int(data_pay.get('book_id')))
     await PayDAO(session_with_commit).add(add_model)
-    text = f'Платеж {data_pay.get('sum_pay')}руб. добавлен к бронированию №{data_pay.get('book_id')}.💰'
+    text = f"Платеж {data_pay.get('sum_pay')}руб. добавлен к бронированию №{data_pay.get('book_id')}.💰"
     await msg.answer(text, reply_markup=main_user_kb(msg.from_user.id))
     await state.clear()
 
@@ -130,6 +129,7 @@ async def cmd_clear(call: CallbackQuery, state: FSMContext):
 @router.message(F.text == 'Да', ClearState.delete)
 async def delete_msg(msg: Message, state: FSMContext):
     await state.update_data(delete=msg.text)
+    from app.bot.create_bot import bot as b
     try:  
         # Все сообщения, начиная с текущего и до первого (message_id = 0)  
         for i in range(msg.message_id, 0, -1):  

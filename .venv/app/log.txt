@@ -1,0 +1,7 @@
+2026-02-12 at 18:48:09 | INFO | Бот запущен...
+2026-02-12 at 18:48:10 | INFO | Бот успешно запущен.
+2026-02-12 at 18:48:10 | SUCCESS | Вебхук установлен: https://s0508hp5-8000.euw.devtunnels.ms/webhook
+2026-02-12 at 18:48:42 | INFO | Получен запрос с вебхука.
+2026-02-12 at 18:48:42 | ERROR | Ошибка при обработке обновления с вебхука: Default key builder is not configured to use key destiny other than the default.
+
+Probably, you should set `with_destiny=True` in for DefaultKeyBuilder.

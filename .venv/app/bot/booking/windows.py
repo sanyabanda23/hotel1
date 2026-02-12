@@ -13,7 +13,7 @@ from app.bot.booking.state import BookingState
 
 def get_phone_nom_window() -> Window:
     """Окно ввода телефона гостя.""" 
-    Window(
+    return Window(
         Const("Введите номер телефона гостя."),
         MessageInput(on_phone_input),
         Group(
@@ -25,7 +25,7 @@ def get_phone_nom_window() -> Window:
 
 def get_name_window() -> Window:
     """Окно ввода имени гостя.""" 
-    Window(
+    return Window(
         Const("Введите имя гостя."),
         MessageInput(on_name_input),
         Group(
@@ -38,8 +38,8 @@ def get_name_window() -> Window:
 
 def get_user_description_window() -> Window:
     """Окно ввода описания гостя.""" 
-    Window(
-        Const("Введите краткую информацию госте."),
+    return Window(
+        Const("Введите краткую информацию о госте."),
         MessageInput(on_description_user_input),
         Group(
             Back(Const("Назад")),
@@ -140,7 +140,7 @@ def get_end_date_window() -> Window:
 
 def get_cost_window() -> Window:
     """Окно ввода стоимости проживания.""" 
-    Window(
+    return Window(
         Const("Введите стоимость проживания за весь период."),
         MessageInput(on_cost_input),
         Group(

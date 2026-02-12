@@ -49,7 +49,7 @@ def get_all_or_last_bookings_window():
 
 def get_year_window() -> Window:
     """Окно ввода года.""" 
-    Window(
+    return Window(
         Const("Введите год, за который нужно вывести бронирования."),
         MessageInput(on_list_all_bookings),
         Group(
