@@ -3,7 +3,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.types import BotCommand, BotCommandScopeDefault
-from aiogram.fsm.storage.redis import RedisStorage
+from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
 from aiogram_dialog import setup_dialogs
 from loguru import logger
 from app.bot.booking.dialog import booking_dialog
@@ -13,7 +13,10 @@ from app.config import settings
 from app.dao.database_midlware import DatabaseMiddlewareWithoutCommit, DatabaseMiddlewareWithCommit
 
 bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-storage = RedisStorage.from_url('redis://127.0.0.1:6379/0')
+storage = RedisStorage.from_url(
+    'redis://127.0.0.1:6379/0',
+    key_builder=DefaultKeyBuilder(with_destiny=True)
+)
 dp = Dispatcher(storage=storage)
 
 
