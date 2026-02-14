@@ -5,7 +5,7 @@ from apscheduler.triggers.cron import CronTrigger
 from aiogram.types import Update
 from fastapi import FastAPI, Request
 from loguru import logger
-from app.api.router import disable_booking, send_admin_msg
+from app.api.router import disable_booking, send_admin_msg, add_rooms
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -24,6 +24,7 @@ async def lifespan(app: FastAPI):
         id='send_booking_task',
         replace_existing=True
     )
+    await add_rooms()
     webhook_url = settings.hook_url
     await bot.set_webhook(
         url=webhook_url,

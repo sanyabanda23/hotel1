@@ -1,10 +1,11 @@
 from loguru import logger
 from app.bot.create_bot import bot
 from app.config import settings
-from app.dao.dao import BookingDAO
+from app.dao.dao import BookingDAO, RoomDAO
 from app.dao.database import async_session_maker
 from typing import List, Tuple
 from app.dao.models import Booking
+from app.api.schemas import SNewRoom
 
 async def disable_booking():
     async with async_session_maker() as session:
@@ -81,4 +82,15 @@ async def send_admin_msg():
                 except Exception as e:
                     logger.error(f"Ошибка отправки сообщения об отсутствии выездов админу {admin_id}: {e}")
 
-
+async def add_rooms():
+    async with async_session_maker() as session:
+        rooms = (("https://cloud.mail.ru/public/Q5ws/QbcLk4zvX", "Двухкомнатный номер люкс"),
+                 ("https://cloud.mail.ru/public/xLwU/UX1tEgQb2","Однокомнатный номер в конце корридора слева"),
+                 ("https://cloud.mail.ru/public/T5Ex/x7NxBoGig","Однокомнатный номер в конце корридора справа"),
+                 ("https://cloud.mail.ru/public/RG6Z/sdMaMaSNZ","Однокомнатный номер справа"))
+        for room in rooms:
+            add_model = SNewRoom(url_photo=room[0], description=room[1])
+            if await RoomDAO(session).add(add_model):
+                logger.info(f"{room[1]} добавлен в базу данных")
+            else:
+                logger.info(f"{room[1]} не удалось добавить в базу данных")
