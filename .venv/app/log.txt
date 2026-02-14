@@ -63,3 +63,140 @@ Probably, you should set `with_destiny=True` in for DefaultKeyBuilder.
 2026-02-14 at 16:56:55 | INFO | Обновление успешно обработано.
 2026-02-14 at 16:56:58 | INFO | Получен запрос с вебхука.
 2026-02-14 at 16:56:59 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:32:35 | INFO | Бот запущен...
+2026-02-14 at 17:32:35 | INFO | Бот успешно запущен.
+2026-02-14 at 17:32:35 | INFO | Добавление записи Room с параметрами: {'url_photo': 'https://cloud.mail.ru/public/Q5ws/QbcLk4zvX', 'description': 'Двухкомнатный номер люкс'}
+2026-02-14 at 17:32:35 | INFO | Запись Room успешно добавлена.
+2026-02-14 at 17:32:35 | INFO | Двухкомнатный номер люкс добавлен в базу данных
+2026-02-14 at 17:32:35 | INFO | Добавление записи Room с параметрами: {'url_photo': 'https://cloud.mail.ru/public/xLwU/UX1tEgQb2', 'description': 'Однокомнатный номер в конце корридора слева'}
+2026-02-14 at 17:32:35 | INFO | Запись Room успешно добавлена.
+2026-02-14 at 17:32:35 | INFO | Однокомнатный номер в конце корридора слева добавлен в базу данных
+2026-02-14 at 17:32:35 | INFO | Добавление записи Room с параметрами: {'url_photo': 'https://cloud.mail.ru/public/T5Ex/x7NxBoGig', 'description': 'Однокомнатный номер в конце корридора справа'}
+2026-02-14 at 17:32:35 | INFO | Запись Room успешно добавлена.
+2026-02-14 at 17:32:35 | INFO | Однокомнатный номер в конце корридора справа добавлен в базу данных
+2026-02-14 at 17:32:35 | INFO | Добавление записи Room с параметрами: {'url_photo': 'https://cloud.mail.ru/public/RG6Z/sdMaMaSNZ', 'description': 'Однокомнатный номер справа'}
+2026-02-14 at 17:32:35 | INFO | Запись Room успешно добавлена.
+2026-02-14 at 17:32:35 | INFO | Однокомнатный номер справа добавлен в базу данных
+2026-02-14 at 17:32:35 | SUCCESS | Вебхук установлен: https://6dp37vhl-8000.euw.devtunnels.ms/webhook
+2026-02-14 at 17:32:35 | INFO | Бот остановлен...
+2026-02-14 at 17:32:35 | ERROR | Бот остановлен!
+2026-02-14 at 17:35:25 | INFO | Бот запущен...
+2026-02-14 at 17:35:25 | INFO | Бот успешно запущен.
+2026-02-14 at 17:35:26 | SUCCESS | Вебхук установлен: https://6dp37vhl-8000.euw.devtunnels.ms/webhook
+2026-02-14 at 17:35:40 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:35:41 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:35:49 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:35:49 | INFO | Поиск всех записей Room по фильтрам: {}
+2026-02-14 at 17:35:49 | INFO | Найдено 0 записей.
+2026-02-14 at 17:35:50 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:36:08 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:36:09 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:36:13 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:36:13 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:36:46 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:36:46 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:37:20 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:37:20 | ERROR | Ошибка при обработке обновления с вебхука: 2 validation errors for SNewUser
+name
+  Field required [type=missing, input_value={'phone_nom': '89515273806'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+description
+  Field required [type=missing, input_value={'phone_nom': '89515273806'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+2026-02-14 at 17:37:55 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:37:56 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:37:58 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:37:59 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:38:11 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:38:11 | ERROR | Ошибка при обработке обновления с вебхука: 2 validation errors for SNewUser
+name
+  Field required [type=missing, input_value={'phone_nom': '89515273806'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+description
+  Field required [type=missing, input_value={'phone_nom': '89515273806'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+2026-02-14 at 17:40:29 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:40:29 | ERROR | Ошибка при обработке обновления с вебхука: 2 validation errors for SNewUser
+name
+  Field required [type=missing, input_value={'phone_nom': '89515273806'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+description
+  Field required [type=missing, input_value={'phone_nom': '89515273806'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+2026-02-14 at 17:41:35 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:41:35 | ERROR | Ошибка при обработке обновления с вебхука: 2 validation errors for SNewUser
+name
+  Field required [type=missing, input_value={'phone_nom': '89515273806'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+description
+  Field required [type=missing, input_value={'phone_nom': '89515273806'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+2026-02-14 at 17:41:48 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:41:48 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:41:52 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:41:52 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:41:56 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:41:57 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:42:01 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:42:01 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:42:04 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:42:04 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:42:21 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:42:21 | ERROR | Ошибка при обработке обновления с вебхука: 2 validation errors for SNewUser
+name
+  Field required [type=missing, input_value={'phone_nom': '89515273806'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+description
+  Field required [type=missing, input_value={'phone_nom': '89515273806'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+2026-02-14 at 17:42:39 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:42:39 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:42:48 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:42:48 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:43:20 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:43:20 | ERROR | Ошибка при обработке обновления с вебхука: 2 validation errors for SNewUser
+name
+  Field required [type=missing, input_value={'phone_nom': '89281641212'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+description
+  Field required [type=missing, input_value={'phone_nom': '89281641212'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+2026-02-14 at 17:43:30 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:43:30 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:43:33 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:43:33 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:43:38 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:43:38 | ERROR | Ошибка при обработке обновления с вебхука: 2 validation errors for SNewUser
+name
+  Field required [type=missing, input_value={'phone_nom': '89281641212'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+description
+  Field required [type=missing, input_value={'phone_nom': '89281641212'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+2026-02-14 at 17:43:57 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:43:57 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:43:59 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:43:59 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:44:03 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:44:03 | ERROR | Ошибка при обработке обновления с вебхука: 2 validation errors for SNewUser
+name
+  Field required [type=missing, input_value={'phone_nom': '89281641212'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+description
+  Field required [type=missing, input_value={'phone_nom': '89281641212'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+2026-02-14 at 17:44:10 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:44:10 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:44:14 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:44:15 | INFO | Обновление успешно обработано.
+2026-02-14 at 17:44:22 | INFO | Получен запрос с вебхука.
+2026-02-14 at 17:44:22 | ERROR | Ошибка при обработке обновления с вебхука: 2 validation errors for SNewUser
+name
+  Field required [type=missing, input_value={'phone_nom': '89281641212'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+description
+  Field required [type=missing, input_value={'phone_nom': '89281641212'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+2026-02-14 at 17:50:49 | INFO | Бот запущен...
+2026-02-14 at 17:50:49 | INFO | Бот успешно запущен.
+2026-02-14 at 17:50:49 | SUCCESS | Вебхук установлен: https://6dp37vhl-8000.euw.devtunnels.ms/webhook
