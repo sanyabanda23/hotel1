@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 class SNewUser(BaseModel):
     phone_nom: str
-    name: str
+    username: str
     description: str
     
 

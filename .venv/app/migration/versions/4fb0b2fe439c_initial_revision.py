@@ -1,8 +1,8 @@
 """Initial revision
 
-Revision ID: c8ec57dfbfa0
+Revision ID: 4fb0b2fe439c
 Revises: 
-Create Date: 2026-01-17 16:17:11.140090
+Create Date: 2026-02-15 12:35:10.257508
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'c8ec57dfbfa0'
+revision: str = '4fb0b2fe439c'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -30,7 +30,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('users',
-    sa.Column('id', sa.BigInteger(), nullable=False),
+    sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
     sa.Column('username', sa.String(), nullable=True),
     sa.Column('phone_nom', sa.String(), nullable=True),
     sa.Column('description', sa.String(), nullable=True),
@@ -39,7 +39,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('bookings',
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('room_id', sa.Integer(), nullable=False),
     sa.Column('date_start', sa.Date(), nullable=False),
@@ -53,7 +53,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('pays',
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('summ', sa.Integer(), nullable=False),
     sa.Column('id_booking', sa.BigInteger(), nullable=False),
     sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),

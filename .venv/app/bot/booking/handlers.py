@@ -51,15 +51,15 @@ async def on_confirmation_user_yes(callback: CallbackQuery, widget, dialog_manag
     user_name = dialog_manager.dialog_data['name']
     description_user = dialog_manager.dialog_data['description_user']
     await callback.answer("Приступаю к сохранению")
-    select_user = await UserDAO(session).find_one_or_none(SNewUser(phone_nom=phone_nomber))
+    select_user = await UserDAO(session).find_one_or_none(UserPhoneFilter(phone_nom=phone_nomber))
     if select_user:
-        filters_model = SNewUser(phone_nom=phone_nomber)
-        values_model = SNewUser(name=user_name, description=description_user)
+        filters_model = UserPhoneFilter(phone_nom=phone_nomber)
+        values_model = SNewUser(username=user_name, description=description_user)
         await UserDAO(session).update(filters=filters_model, values=values_model)
         await callback.answer(f"Информация о госте обновлена!")
     else:
         add_model = SNewUser(phone_nom=phone_nomber,
-                               name=user_name, description=description_user)
+                               username=user_name, description=description_user)
         await UserDAO(session).add(add_model)
         await callback.answer(f"Гость успешно добавлен!")
     await dialog_manager.switch_to(BookingState.room)

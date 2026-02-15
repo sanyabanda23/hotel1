@@ -1,6 +1,6 @@
 from aiogram_dialog import DialogManager
 from app.dao.dao import BookingDAO, UserDAO, RoomDAO
-from app.bot.booking.schemas import SNewUser, SNewBooking
+from app.bot.booking.schemas import UserPhoneFilter
 
 async def get_confirmed_data_newuser(dialog_manager: DialogManager, **kwargs):
     """Получение данных для подтверждения внесения информации о госте в БД."""
@@ -51,7 +51,7 @@ async def get_confirmed_data_booking(dialog_manager: DialogManager, **kwargs):
     """Получение данных для подтверждения бронирования."""
     session = dialog_manager.middleware_data.get("session_without_commit")
 
-    dialog_manager.dialog_data["user"] = await UserDAO(session).find_one_or_none(SNewUser(
+    dialog_manager.dialog_data["user"] = await UserDAO(session).find_one_or_none(UserPhoneFilter(
                                     phone_nom=dialog_manager.dialog_data["phone_nom"]))
 
     user = dialog_manager.dialog_data["user"]
