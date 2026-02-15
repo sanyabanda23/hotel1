@@ -78,31 +78,31 @@ async def on_room_selected(callback: CallbackQuery, widget, dialog_manager: Dial
     session = dialog_manager.middleware_data.get("session_without_commit") # возвращает сессию, если она есть
     room_id = int(item_id)
     selected_room = await RoomDAO(session).find_one_or_none_by_id(room_id)
-    dialog_manager.dialog_data["selected_room"] = selected_room
+    dialog_manager.dialog_data["selected_room_id"] = selected_room.id
+    dialog_manager.dialog_data["selected_room_description"] = selected_room.description
     await callback.answer(f"Выбран номер №{room_id}")
-    await dialog_manager.next()
+    await dialog_manager.switch_to(BookingState.booking_date_start)
 
 async def process_date_start_selected(callback: CallbackQuery, widget, dialog_manager: DialogManager, selected_date: date):
     """Обработчик выбора даты заезда."""
-    dialog_manager.dialog_data["booking_date_start"] = selected_date
-    await dialog_manager.next()
+    dialog_manager.dialog_data["booking_date_start"] = selected_date.isoformat()
+    await dialog_manager.switch_to(BookingState.booking_date_end)
 
 async def process_date_end_selected(callback: CallbackQuery, widget, dialog_manager: DialogManager, selected_date: date):
     """Обработчик выбора даты выезда."""
     session = dialog_manager.middleware_data.get("session_without_commit") # возвращает сессию, если она есть
-    dialog_manager.dialog_data["booking_date_end"] = selected_date
+    dialog_manager.dialog_data["booking_date_end"] = selected_date.isoformat()
     selected_date_start = dialog_manager.dialog_data["booking_date_start"]
-    selected_room = dialog_manager.dialog_data["selected_room"]
-    selected_room_id = int(selected_room.id)
+    selected_room_id = int(dialog_manager.dialog_data["selected_room_id"])
     slots = await BookingDAO(session).check_available_bookings(room_id=selected_room_id, 
                                                                booking_date_start=selected_date_start, 
-                                                               booking_date_end=selected_date)
+                                                               booking_date_end=selected_date.isoformat())
     if slots:
         await callback.answer(f"Выбрана дата: с {selected_date_start} по {selected_date}")
-        await dialog_manager.next()
+        await dialog_manager.switch_to(BookingState.cost)
     else:
         await callback.answer(f"В выбранный период с {selected_date_start} по {selected_date}\n"
-                              f"в номер №{selected_room.id} будет зянят!")
+                              f"в номер №{selected_room_id} будет зянят!")
         await dialog_manager.switch_to(BookingState.booking_date_start)
 
 
@@ -128,17 +128,17 @@ async def on_confirmation(callback: CallbackQuery, widget, dialog_manager: Dialo
     session = dialog_manager.middleware_data.get("session_with_commit")
     
     # Получаем выбранные данные
-    user = dialog_manager.dialog_data["user"]
-    room = dialog_manager.dialog_data['selected_room']
+    user = dialog_manager.dialog_data["user_id"]
+    room = dialog_manager.dialog_data["selected_room_id"]
     date_start = dialog_manager.dialog_data["booking_date_start"]
     date_end = dialog_manager.dialog_data["booking_date_end"]
     cost = dialog_manager.dialog_data["cost"]
-    check = await BookingDAO(session).check_available_bookings(room_id=room.id, 
+    check = await BookingDAO(session).check_available_bookings(room_id=room, 
                                                                booking_date_start=date_start, 
                                                                booking_date_end=date_end)
     if check:
         await callback.answer("Приступаю к сохранению")
-        add_model = SNewBooking(user_id=user.id, room_id=room.id, date_start=date_start,
+        add_model = SNewBooking(user_id=user, room_id=room, date_start=date_start,
                                 date_end=date_end, status="booked", cost=cost)
         await BookingDAO(session).add(add_model)
         await callback.answer(f"Бронирование успешно создано!")
