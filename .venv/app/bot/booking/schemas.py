@@ -15,3 +15,6 @@ class SNewBooking(BaseModel):
     date_end: date
     status: str
     cost: int
+
+class UserPhoneFilter(BaseModel):
+    phone_nom: str

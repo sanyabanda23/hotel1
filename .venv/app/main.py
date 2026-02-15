@@ -24,7 +24,6 @@ async def lifespan(app: FastAPI):
         id='send_booking_task',
         replace_existing=True
     )
-    await show_rooms()
     webhook_url = settings.hook_url
     await bot.set_webhook(
         url=webhook_url,

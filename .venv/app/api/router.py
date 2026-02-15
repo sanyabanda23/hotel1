@@ -98,5 +98,9 @@ async def add_rooms():
 async def show_rooms():
     async with async_session_maker() as session:
         rooms = await RoomDAO(session).find_all()
-        for room in rooms:
-            logger.info(f"Комната №{room.id} с описаниием '{room.description}'")
+        if rooms:
+            logger.info(f"Найдено {len(rooms)} записей")
+            for room in rooms:
+                logger.info(f"Комната №{room.id} с описаниием '{room.description}'")
+        else:
+            logger.info(f"Записи не найдены")

@@ -2,7 +2,7 @@ from datetime import date
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, Dialog
 from aiogram_dialog.widgets.kbd import Button
-from app.bot.booking.schemas import SNewUser, SNewBooking
+from app.bot.booking.schemas import SNewUser, SNewBooking, UserPhoneFilter
 from app.bot.booking.state import BookingState
 from app.bot.admin.kbs import main_user_kb
 from app.dao.dao import BookingDAO, UserDAO, RoomDAO
@@ -27,7 +27,8 @@ async def on_phone_input(message: Message, dialog: Dialog, dialog_manager: Dialo
         return  # Остаёмся в текущем состоянии
     
     dialog_manager.dialog_data["phone_nom"] = cleaned_phone
-    dialog_manager.dialog_data["user"] = await UserDAO(session).find_one_or_none(SNewUser(phone_nom=cleaned_phone))
+    find_model = UserPhoneFilter(phone_nom=cleaned_phone)
+    dialog_manager.dialog_data["user"] = await UserDAO(session).find_one_or_none(find_model)
     if dialog_manager.dialog_data["user"]:
         await dialog_manager.switch_to(BookingState.check_nom)
     else:

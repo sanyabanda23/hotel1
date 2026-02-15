@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import CallbackQuery, Message, InlineKeyboardButton, InlineKeyboardMarkup, CopyTextButton
 from aiogram_dialog import DialogManager, StartMode
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -156,7 +156,7 @@ async def copy_url_photo(call: CallbackQuery, session_without_commit: AsyncSessi
 
         if user_id in settings.ADMIN_IDS:
             for room in rooms:
-                kb.add(InlineKeyboardButton(text=f"Номер №{room.id}", copy_text=room.url))
+                kb.add(InlineKeyboardButton(text=f"Номер №{room.id}", copy_text=CopyTextButton(text=room.url_photo)))
     
         kb.adjust(2)            # Устанавливает количество кнопок в одном ряду (строке) клавиатуры
         return kb.as_markup()
