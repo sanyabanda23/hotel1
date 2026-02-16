@@ -83,7 +83,7 @@ def get_room_window() -> Window:
         Format("{text_room}"),
         ScrollingGroup(                                             # группа с возможностью пагинации для больших списков
             Select(                                                 # специальный виджет для выбора из списка элементов.
-                Format("Комната №{item[id]} - {item[description]}"),
+                Format("№{item[id]} - {item[description]}"),
                 id="room_select",                                  # уникальный идентификатор виджета
                 item_id_getter=lambda items: str(items["id"]),        # функция для получения ID каждого элемента
                 items="rooms",                                     # имя ключа в данных, полученных из getter
