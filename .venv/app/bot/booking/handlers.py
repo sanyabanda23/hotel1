@@ -26,12 +26,13 @@ async def on_phone_input(message: Message, dialog: Dialog, dialog_manager: Dialo
         await message.answer("Некорректный формат номера. Введите номер в формате +7ХХХХХХХХХХХ.")
         return  # Остаёмся в текущем состоянии
     
-    dialog_manager.dialog_data["phone_nom"] = cleaned_phone
     find_model = UserPhoneFilter(phone_nom=cleaned_phone)
-    dialog_manager.dialog_data["user"] = await UserDAO(session).find_one_or_none(find_model)
-    if dialog_manager.dialog_data["user"]:
+    user = await UserDAO(session).find_one_or_none(find_model) 
+    if user:
+        dialog_manager.dialog_data["phone_nom"] = user.phone_nom
         await dialog_manager.switch_to(BookingState.check_nom)
     else:
+        dialog_manager.dialog_data["phone_nom"] = cleaned_phone
         await dialog_manager.switch_to(BookingState.name)
 
 async def on_name_input(message: Message, dialog: Dialog, dialog_manager: DialogManager):
@@ -101,7 +102,7 @@ async def process_date_end_selected(callback: CallbackQuery, widget, dialog_mana
         await callback.answer(f"Выбрана дата: с {selected_date_start} по {selected_date}")
         await dialog_manager.switch_to(BookingState.cost)
     else:
-        await callback.answer(f"В выбранный период с {selected_date_start} по {selected_date}\n"
+        await callback.message.answer(f"В выбранный период с {selected_date_start} по {selected_date}\n"
                               f"в номер №{selected_room_id} будет зянят!")
         await dialog_manager.switch_to(BookingState.booking_date_start)
 

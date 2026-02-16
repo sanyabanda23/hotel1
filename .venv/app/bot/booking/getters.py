@@ -23,7 +23,10 @@ async def get_confirmed_data_newuser(dialog_manager: DialogManager, **kwargs):
 async def get_confirmed_data_user(dialog_manager: DialogManager, **kwargs):
     """Получение данных для подтверждения информации 
     о госте? который ранее был внесен в БД."""
-    user = dialog_manager.dialog_data['user']
+    session = dialog_manager.middleware_data.get("session_without_commit")
+    user_phone = dialog_manager.dialog_data['phone_nom']
+    find_model = UserPhoneFilter(phone_nom=user_phone)
+    user = await UserDAO(session).find_one_or_none(find_model)
 
     confirmed_text = (
         "<b>Гость с данным номером телефона</b>\n"
@@ -31,9 +34,9 @@ async def get_confirmed_data_user(dialog_manager: DialogManager, **kwargs):
         f"<b>Проверь информацию о нем!</b>\n\n"
         f"<b>📅 Подтверждение информации</b>\n\n"
         f"<b>Информация о госте:</b>\n"
-        f"  - 👥 Имя гостя: {user.username}\n"
-        f"  - 💻 Контактный телефон: {user.phone_nom}\n"
-        f"  - ℹ️ Описание: {user.description}\n\n"
+        f"  - 🙋‍♂️ Имя гостя: {user.username}\n"
+        f"  - 📱 Контактный телефон: {user.phone_nom}\n"
+        f"  - 📝 Описание: {user.description}\n\n"
         "✅ Все ли верно?"
     )
 
