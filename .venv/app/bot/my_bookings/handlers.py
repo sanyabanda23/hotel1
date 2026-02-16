@@ -16,27 +16,23 @@ async def cancel_logic(callback: CallbackQuery, button: Button, dialog_manager: 
     
 async def on_room_selected(callback: CallbackQuery, widget, dialog_manager: DialogManager, item_id: str):
     """Обработчик выбора номера."""
-    session = dialog_manager.middleware_data.get("session_without_commit") # возвращает сессию, если она есть
-    room_id = int(item_id)
-    selected_room = await RoomDAO(session).find_one_or_none_by_id(room_id)
-    dialog_manager.dialog_data["selected_room"] = selected_room
-    await callback.answer(f"Выбран номер №{room_id}")
+    dialog_manager.dialog_data["selected_room"] = item_id
+    await callback.answer(f"Выбран номер №{item_id}")
     await dialog_manager.next()
 
 async def on_list_last_bookings(callback: CallbackQuery, dialog: Dialog, dialog_manager: DialogManager, state: FSMContext):
     session = dialog_manager.middleware_data.get("session_without_commit")
     selected_room = dialog_manager.dialog_data["selected_room"]
-    dialog_manager.dialog_data["all_bookings"] = await BookingDAO(session).get_bookings_with_details(selected_room.id)
-    if dialog_manager.dialog_data["all_bookings"]:
-        text = f'Найдено {len(dialog_manager.dialog_data["all_bookings"])} записей!\n' \
+    all_bookings = await BookingDAO(session).get_bookings_with_details(room_id=int(selected_room))
+    if all_bookings:
+        text = f'Найдено {len(all_bookings)} записей!\n' \
                f'Вывести их?'
         await callback.message.answer(text, reply_markup=yes_no_kb(callback.from_user.id))
-        all_bookings = dialog_manager.dialog_data["all_bookings"]
         await state.set_state(OutputBookingsState.dialog_start)
         await state.update_data(all=all_bookings)
         await dialog_manager.done()
     else:
-        text = f'По номеру №{selected_room.id} отсутствует информация о бронированиях.'
+        text = f'По номеру №{selected_room} отсутствует информация о бронированиях.'
         await callback.message.answer(text)
         await dialog_manager.switch_to(MyBookingState.room)
 
@@ -50,23 +46,20 @@ async def on_list_all_bookings(message: Message, dialog: Dialog, dialog_manager:
     if user_input.isdigit():
         # Преобразуем в число для дальнейших расчётов
         session = dialog_manager.middleware_data.get("session_without_commit")
-        dialog_manager.dialog_data["year"] = int(user_input)
         selected_room = dialog_manager.dialog_data["selected_room"]
-        year = dialog_manager.dialog_data["year"]
-        dialog_manager.dialog_data["all_bookings"] = await BookingDAO(session).get_bookings_with_details_year(
-                                                            room_id=selected_room.id,
-                                                            year=year
+        all_bookings = await BookingDAO(session).get_bookings_with_details_year(
+                                                            room_id=selected_room,
+                                                            year=user_input
                                                             )
-        if dialog_manager.dialog_data["all_bookings"]:
-            text = f'Найдено {len(dialog_manager.dialog_data["all_bookings"])} записей за {year} год.!\n' \
+        if all_bookings:
+            text = f'Найдено {len(all_bookings)} записей за {user_input} год.!\n' \
                    f'Вывести их?'
             await message.answer(text, reply_markup=yes_no_kb(message.from_user.id))
-            all_bookings = dialog_manager.dialog_data["all_bookings"]
             await state.set_state(OutputBookingsState.dialog_start)
             await state.update_data(all=all_bookings)
             await dialog_manager.done()
         else:
-            text = f'По номеру №{selected_room.id} отсутствует информация о бронированиях за {year} год.'
+            text = f'По номеру №{selected_room} отсутствует информация о бронированиях за {user_input} год.'
             await message.answer(text)
             await dialog_manager.switch_to(MyBookingState.room)
     else:
