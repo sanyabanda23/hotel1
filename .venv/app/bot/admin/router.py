@@ -36,6 +36,7 @@ async def start_dialog_booking(call: CallbackQuery, dialog_manager: DialogManage
 @router.callback_query(F.data == "my_bookings")
 async def start_dialog_mybookings(call: CallbackQuery, dialog_manager: DialogManager, state: FSMContext):
     await call.answer("Формирование списка бронировваний")
+    await state.set_state(OutputBookingsState.dialog_start)
     await dialog_manager.start(state=MyBookingState.room, mode=StartMode.RESET_STACK)
 
 @router.callback_query(F.data == "no_output_book", OutputBookingsState.dialog_start)

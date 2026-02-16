@@ -39,6 +39,8 @@ async def on_list_last_bookings(callback: CallbackQuery, dialog: Dialog, dialog_
 async def on_all_bookings(callback: CallbackQuery, dialog: Dialog, dialog_manager: DialogManager):
     await dialog_manager.switch_to(MyBookingState.year)
 
+from app.bot.admin.router import router
+@router.message(OutputBookingsState.dialog_start)
 async def on_list_all_bookings(message: Message, dialog: Dialog, dialog_manager: DialogManager, state: FSMContext):
     user_input = message.text.strip()
     
@@ -55,7 +57,6 @@ async def on_list_all_bookings(message: Message, dialog: Dialog, dialog_manager:
             text = f'Найдено {len(all_bookings)} записей за {user_input} год.!\n' \
                    f'Вывести их?'
             await message.answer(text, reply_markup=yes_no_kb(message.from_user.id))
-            await state.set_state(OutputBookingsState.dialog_start)
             await state.update_data(all=all_bookings)
             await dialog_manager.done()
         else:
