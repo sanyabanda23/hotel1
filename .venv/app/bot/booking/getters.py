@@ -1,6 +1,7 @@
 from aiogram_dialog import DialogManager
 from app.dao.dao import BookingDAO, UserDAO, RoomDAO
 from app.bot.booking.schemas import UserPhoneFilter
+from datetime import datetime
 
 async def get_confirmed_data_newuser(dialog_manager: DialogManager, **kwargs):
     """Получение данных для подтверждения внесения информации о госте в БД."""
@@ -61,10 +62,12 @@ async def get_confirmed_data_booking(dialog_manager: DialogManager, **kwargs):
     date_start = dialog_manager.dialog_data["booking_date_start"]
     date_end = dialog_manager.dialog_data["booking_date_end"]
     cost = dialog_manager.dialog_data["cost"]
+    date_st = datetime.strptime(date_start, "%Y-%m-%d").strftime("%d.%m.%Y")
+    date_en = datetime.strptime(date_end, "%Y-%m-%d").strftime("%d.%m.%Y")
 
     confirmed_text = (
         "<b>📅 Подтверждение бронирования</b>\n\n"
-        f"<b>📆 Дата:</b>с {date_start} по {date_end}\n\n"
+        f"<b>📆 Дата:</b>с {date_st} по {date_en}\n\n"
         f"<b>🍴 Информация о бронировании:</b>\n"
         f"  - 👥 Имя гостя: {user.username}\n"
         f"  - 👥 Телефон: {user.phone_nom}\n"
