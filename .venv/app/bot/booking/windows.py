@@ -105,7 +105,7 @@ def get_room_window() -> Window:
 def get_start_date_window() -> Window:
     """Окно выбора даты заезда."""
     return Window(
-        Const("Выбери дату заезда гостя"),
+        Const("🟢→ Выбери дату заезда гостя"),
         Calendar(
             id="cal",
             on_click=process_date_start_selected,
@@ -123,7 +123,7 @@ def get_start_date_window() -> Window:
 def get_end_date_window() -> Window:
     """Окно выбора даты выезда."""
     return Window(
-        Const("Выбери дату выезда гостя"),
+        Const("🔴← Выбери дату выезда гостя"),
         Calendar(
             id="cal",
             on_click=process_date_end_selected,

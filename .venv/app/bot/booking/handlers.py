@@ -55,7 +55,7 @@ async def on_confirmation_user_yes(callback: CallbackQuery, widget, dialog_manag
     select_user = await UserDAO(session).find_one_or_none(UserPhoneFilter(phone_nom=phone_nomber))
     if select_user:
         filters_model = UserPhoneFilter(phone_nom=phone_nomber)
-        values_model = SNewUser(username=user_name, description=description_user)
+        values_model = SNewUser(username=user_name, phone_nom=phone_nomber, description=description_user)
         await UserDAO(session).update(filters=filters_model, values=values_model)
         await callback.answer(f"Информация о госте обновлена!")
     else:
@@ -98,13 +98,18 @@ async def process_date_end_selected(callback: CallbackQuery, widget, dialog_mana
     slots = await BookingDAO(session).check_available_bookings(room_id=selected_room_id, 
                                                                booking_date_start=selected_date_start, 
                                                                booking_date_end=selected_date.isoformat())
-    if slots:
-        await callback.answer(f"Выбрана дата: с {selected_date_start} по {selected_date}")
-        await dialog_manager.switch_to(BookingState.cost)
-    else:
-        await callback.message.answer(f"В выбранный период с {selected_date_start} по {selected_date}\n"
-                              f"в номер №{selected_room_id} будет зянят!")
+    if selected_date_start > selected_date.isoformat():
+        await callback.message.answer(f"Дата заезда не может быть позже даты выезда!\n"
+                                      f"Выбери период времени еще раз!")
         await dialog_manager.switch_to(BookingState.booking_date_start)
+    else:
+        if slots:
+            await callback.answer(f"Выбрана дата: с {selected_date_start} по {selected_date}")
+            await dialog_manager.switch_to(BookingState.cost)
+        else:
+            await callback.message.answer(f"В выбранный период с {selected_date_start} по {selected_date}\n"
+                                          f"в номер №{selected_room_id} будет зянят!")
+            await dialog_manager.switch_to(BookingState.booking_date_start)
 
 
 async def on_cost_input(message: Message, dialog: Dialog, dialog_manager: DialogManager):
