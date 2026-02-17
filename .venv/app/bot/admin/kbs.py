@@ -19,7 +19,7 @@ def yes_no_kb_last_books(user_id: int, room_id: str) -> InlineKeyboardMarkup:
     kb = InlineKeyboardBuilder()
 
     if user_id in settings.ADMIN_IDS:
-        kb.add(InlineKeyboardButton(text="✅ Да", callback_data=f"last_books_{room_id}"))
+        kb.add(InlineKeyboardButton(text="✅ Да", callback_data=f"lastbooks_{room_id}"))
         kb.add(InlineKeyboardButton(text="❌ Отменить", callback_data="no_output_book"))
     
     kb.adjust(1)            # Устанавливает количество кнопок в одном ряду (строке) клавиатуры
@@ -29,7 +29,7 @@ def yes_no_kb_year_books(user_id: int, room_id: str, year: str) -> InlineKeyboar
     kb = InlineKeyboardBuilder()
 
     if user_id in settings.ADMIN_IDS:
-        kb.add(InlineKeyboardButton(text="✅ Да", callback_data=f"year_books_{room_id}_{year}"))
+        kb.add(InlineKeyboardButton(text="✅ Да", callback_data=f"yearbooks_{room_id}_{year}"))
         kb.add(InlineKeyboardButton(text="❌ Отменить", callback_data="no_output_book"))
     
     kb.adjust(1)            # Устанавливает количество кнопок в одном ряду (строке) клавиатуры

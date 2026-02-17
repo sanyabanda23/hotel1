@@ -46,10 +46,10 @@ async def no_output_bookings(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("Вы отменили сценарий вывода информации о бронях.",
                                   reply_markup=main_user_kb(callback.from_user.id))
 
-@router.callback_query(F.data == "yes_output_book", OutputBookingsState.dialog_start)
-async def yes_output_bookings(callback: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-    all_bookings = data.get("all")
+@router.callback_query(F.data.startswith("lastbooks_"), OutputBookingsState.dialog_start)
+async def yes_output_last_bookings(callback: CallbackQuery, state: FSMContext, session_without_commit: AsyncSession):
+    selected_room = int(callback.data.split("_")[-1])   
+    all_bookings = await BookingDAO(session_without_commit).get_bookings_with_details(room_id=int(selected_room))
     
     if not all_bookings:
         await callback.message.answer("Нет бронирований для отображения.", 
