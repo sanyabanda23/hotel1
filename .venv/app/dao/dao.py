@@ -177,7 +177,7 @@ class BookingDAO(BaseDAO[Booking]):
             query = (
                 select(
                     self.model,
-                    func.sum(self.model.pays.summ).label("total_payment")
+                    func.sum(Pay.summ).label("total_payment")
                 )
                     .join(self.model.user)           # JOIN для пользователя
                     .join(self.model.room)
