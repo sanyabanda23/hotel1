@@ -58,6 +58,7 @@ async def yes_output_last_bookings(callback: CallbackQuery, state: FSMContext, s
         return
     
     last_booking_id = all_bookings[-1][0].id
+    home_page = False
 
     for book, total_payment in all_bookings:                                         
         # Форматируем дату и время для удобства чтения

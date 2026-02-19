@@ -184,6 +184,9 @@ class BookingDAO(BaseDAO[Booking]):
                     .outerjoin(self.model.pays)     # LEFT JOIN для платежей
                     .filter(self.model.room_id == room_id, self.model.date_end >= now)
                     .group_by(self.model.id)         # Группировка по ID бронирования
+                    .options(
+                            joinedload(self.model.user),      # ← Правильно: через .options()
+                            joinedload(self.model.room))
                 )
 
             result = await self._session.execute(query)
@@ -195,7 +198,8 @@ class BookingDAO(BaseDAO[Booking]):
                     total = int(total_payment) if total_payment is not None else 0  # Если нет платежей → 0
                     bookings.append((booking, total))
 
-                logger.info(f"Для комнаты №{room_id} найдено {len(bookings)} бронирований за указанный период")
+                leny = len(bookings)
+                logger.info(f"Для комнаты №{room_id} найдено {leny} бронирований за указанный период")
                 return bookings
             else:
                 logger.info(f"Для комнаты №{room_id} нет бронирований за указанный период")
