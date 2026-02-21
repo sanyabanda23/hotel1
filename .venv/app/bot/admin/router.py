@@ -254,7 +254,7 @@ async def search_user(msg: Message, state: FSMContext, session_without_commit: A
             await msg.answer(confirmed_text, reply_markup=info_kb(msg.from_user.id))
             await state.clear()
         else:
-            await msg.answer("Гость с такиим номером телефона не проживал!", reply_markup=info_kb(msg.from_user.id))
+            await msg.answer("Гость с таким номером телефона не проживал!", reply_markup=info_kb(msg.from_user.id))
             await state.clear()
     else:
         await msg.answer("Некорректный формат номера. Введите номер в формате +7ХХХХХХХХХХХ.")
