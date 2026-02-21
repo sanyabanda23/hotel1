@@ -66,6 +66,9 @@ class BookingDAO(BaseDAO[Booking]):
                     .outerjoin(self.model.pays)     # LEFT JOIN для платежей
                     .filter(self.model.date_start == now.date())
                     .group_by(self.model.id)         # Группировка по ID бронирования
+                    .options(
+                            joinedload(self.model.user),      # ← Правильно: через .options()
+                            joinedload(self.model.room))
                 )
 
             result = await self._session.execute(query)
@@ -105,6 +108,9 @@ class BookingDAO(BaseDAO[Booking]):
                     .outerjoin(self.model.pays)     # LEFT JOIN для платежей
                     .filter(self.model.date_end == now.date())
                     .group_by(self.model.id)         # Группировка по ID бронирования
+                    .options(
+                            joinedload(self.model.user),      # ← Правильно: через .options()
+                            joinedload(self.model.room))
                 )
 
             result = await self._session.execute(query)
@@ -144,6 +150,9 @@ class BookingDAO(BaseDAO[Booking]):
                     .outerjoin(self.model.pays)     # LEFT JOIN для платежей
                     .filter(self.model.room_id == room_id, extract('year', self.model.date_start) == year)
                     .group_by(self.model.id)         # Группировка по ID бронирования
+                    .options(
+                            joinedload(self.model.user),      # ← Правильно: через .options()
+                            joinedload(self.model.room))
                 )
 
             result = await self._session.execute(query)

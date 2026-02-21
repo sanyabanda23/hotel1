@@ -92,6 +92,53 @@ async def yes_output_last_bookings(callback: CallbackQuery, state: FSMContext, s
                                                                     home_page=home_page))
     await state.set_state(OutputBookingsState.books)
 
+@router.callback_query(F.data.startswith("yearbooks_"), OutputBookingsState.dialog_start)
+async def yes_output_all_bookings(callback: CallbackQuery, state: FSMContext, session_without_commit: AsyncSession):
+    selected_room = int(callback.data.split("_")[1])
+    selected_year = int(callback.data.split("_")[2])
+    all_bookings = await BookingDAO(session_without_commit).get_bookings_with_details_year(room_id=selected_room, year=selected_year)
+    
+    if not all_bookings:
+        await callback.message.answer("Нет бронирований для отображения.", 
+                                      reply_markup=main_user_kb(callback.from_user.id))
+        await state.clear()
+        return
+    
+    last_booking_id = all_bookings[-1][0].id
+    home_page = False
+
+    for book, total_payment in all_bookings:                                         
+        # Форматируем дату и время для удобства чтения
+        booking_date_start = book.date_start.strftime("%d.%m.%Y")  # День.Месяц.Год
+        booking_date_end = book.date_end.strftime("%d.%m.%Y")
+        booking_number = book.id
+        booking_room = book.room_id
+        booking_status = book.status
+        booking_cost = book.cost
+        booking_pay = total_payment
+        booking_user = book.user.username
+        phone_number = book.user.phone_nom
+        description = book.user.description
+        if booking_status == "booked":
+            status_text = "Забронирован"
+        elif booking_status == "completed":
+            status_text = "Исполнено"
+        message_text = (f"<b>Бронь №{booking_number} номера {booking_room}:</b>\n\n"
+                        f"📅 <b>Дата:</b> с {booking_date_start} по {booking_date_end}\n"
+                        f"📌 <b>Статус:</b> {status_text}\n"
+                        f"💰 Стоимость проживания: {booking_cost} рублей\n"
+                        f"💸 Внесена оплата: {booking_pay} рублей\n"
+                        f"  - 👤 Имя гостя: {booking_user}\n"
+                        f"  - 📱 Контактный телефон: {phone_number}\n"
+                        f"  - 📝 Описание: {description}")
+        if last_booking_id == booking_number:
+            home_page = True
+        await callback.message.answer(message_text, reply_markup=cancel_pay_book_kb(
+                                                                    user_id=callback.from_user.id,
+                                                                    book_id=booking_number, 
+                                                                    home_page=home_page))
+    await state.set_state(OutputBookingsState.books)
+
 @router.callback_query(F.data.startswith("dell_book_"), OutputBookingsState.books)
 async def delete_booking(call: CallbackQuery, session_with_commit: AsyncSession, state: FSMContext):
     book_id = int(call.data.split("_")[-1])
