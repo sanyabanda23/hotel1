@@ -11,13 +11,12 @@ def normalize_dates(periods):
     for period in periods:
         start = period['start']
         end = period['end']
-        
-        # Приводим к типу date, если это datetime
+
         if isinstance(start, datetime):
             start = start.date()
         if isinstance(end, datetime):
             end = end.date()
-            
+
         normalized.append({
             'start': start,
             'end': end,
@@ -26,68 +25,123 @@ def normalize_dates(periods):
     return normalized
 
 def create_calendar_plot(periods, min_date, max_date):
-    # Создаём фигуру
-    fig, ax = plt.subplots(figsize=(16, 10))
-    ax.set_title(f"Календарь периодов: {min_date.strftime('%B %Y')} — {max_date.strftime('%B %Y')}",
-                 fontsize=16, pad=20)
-    
-    # Настраиваем оси
-    ax.set_xlim(0, 7)
-    ax.set_ylim(0, 6)  # Максимум 6 недель в месяце
-    ax.set_xticks(np.arange(0.5, 7.5))
-    ax.set_yticks(np.arange(0.5, 6.5))
-    ax.set_xticklabels(['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'])
-    ax.grid(True, alpha=0.3)
-    
-    # Отключаем стандартные метки осей
-    ax.tick_params(left=False, bottom=False)
-    
-    # Функция для отрисовки месяца
-    def draw_month(year, month, offset_y):
+    if not periods:
+        raise ValueError("Список периодов пуст — невозможно построить календарь")
+
+    # Рассчитываем количество месяцев
+    num_months = ((max_date.year - min_date.year) * 12 +
+                 (max_date.month - min_date.month) + 1)
+
+    # Ширина: 3 месяца в ряд, высота зависит от количества рядов
+    months_per_row = 3
+    rows = (num_months + months_per_row - 1) // months_per_row
+    fig_width = 18  # фиксированная ширина для 3 месяцев
+    fig_height = rows * 4  # 4 дюйма на ряд месяцев
+
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+
+    # Отключаем оси
+    ax.axis('off')
+
+    # Функция для отрисовки месяца в сетке
+    def draw_month_in_grid(year, month, grid_x, grid_y):
         cal = calendar.monthcalendar(year, month)
         month_name = calendar.month_name[month]
-        ax.text(3.5, offset_y + 5.8, f"{month_name} {year}",
-                ha='center', va='center', fontsize=12, fontweight='bold')
+
+        # Позиция месяца в сетке (каждый месяц занимает область 2.5x2.5)
+        x_offset = grid_x * 2.8
+        y_offset = grid_y * 3.2
+
+        # Заголовок месяца над календарём
+        ax.text(x_offset + 1.4, y_offset + 2.0, f"{month_name} {year}",
+                ha='center', va='center', fontsize=11, fontweight='bold')
         
+        # Дни недели над календарём месяца
+        for d, day_name in enumerate(['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']):
+            ax.text(x_offset + d * 0.22, y_offset + 1.75, day_name,
+                    ha='center', va='center', fontsize=10, fontweight='bold', color='darkblue')
+
         for week_idx, week in enumerate(cal):
             for day_idx, day in enumerate(week):
                 if day == 0:
                     continue
+
                 day_date = date(year, month, day)
-                cell_center_x = day_idx + 0.5
-                cell_center_y = offset_y - week_idx + 0.5
-                
-                # Проверяем, принадлежит ли дата какому‑либо периоду
+                cell_x = x_offset + day_idx * 0.05
+                cell_y = y_offset + (2.5 - week_idx) * 0.1  # инвертируем недели
+
+                # Флаг: нашли ли период для этой даты
+                found_period = False
+
+                # Проверяем все периоды для текущей даты
                 for period in periods:
                     if period['start'] <= day_date <= period['end']:
-                        # Рисуем прямоугольник для периода
-                        rect = Rectangle((day_idx, offset_y - week_idx), 1, 1,
-                                      facecolor='lightblue', edgecolor='blue', alpha=0.7)
+                        # Выделяем ячейку цветом
+                        rect = Rectangle(
+                                        (cell_x - 0.10, cell_y - 0.10),
+                                        0.20, 0.20,
+                                        facecolor='lightyellow',
+                                        edgecolor='orange',
+                                        linewidth=1.2,
+                                        alpha=0.8
+                                        )
                         ax.add_patch(rect)
-                        
-                        # Добавляем номер периода
-                        ax.text(cell_center_x, cell_center_y, str(period['number']),
-                               ha='center', va='center', fontsize=8, fontweight='bold',
-                               color='darkblue')
+
+                        # Оставляем дату, но делаем её более заметной
+                        ax.text(
+                                cell_x,
+                                cell_y,
+                                str(day),
+                                ha='center',
+                                va='center',
+                                fontsize=10,
+                                fontweight='bold',
+                                color='darkred'
+                                )
+                        found_period = True
                         break
-                else:
-                    # Обычный день
-                    ax.text(cell_center_x, cell_center_y, str(day),
-                           ha='center', va='center', fontsize=9)
-    
-    # Рисуем месяцы в диапазоне
+
+                # Если период не найден, отображаем дату обычным цветом
+                if not found_period:
+                    ax.text(
+                cell_x,
+                cell_y,
+                str(day),
+                ha='center',
+                va='center',
+                fontsize=10,
+                color='black'
+            )
+
+    # Рисуем месяцы в сетке 3×N
     current = min_date
-    offset_y = 5  # Начальная позиция по Y
+    grid_x, grid_y = 0, 0
+
     while current <= max_date:
-        draw_month(current.year, current.month, offset_y)
-        offset_y -= 6  # Сдвигаем на 6 строк вниз для следующего месяца
+        draw_month_in_grid(current.year, current.month, grid_x, grid_y)
+
+        # Переходим к следующему месту в сетке
+        grid_x += 1
+        if grid_x >= 3:  # 3 месяца в ряду
+            grid_x = 0
+            grid_y += 1
+
         # Переходим к следующему месяцу
         if current.month == 12:
             current = date(current.year + 1, 1, 1)
         else:
             current = date(current.year, current.month + 1, 1)
-    
-    plt.tight_layout()
+
+    # Настройка отступов
+    plt.subplots_adjust(
+        left=0.06,
+        right=0.94,
+        top=0.95,
+        bottom=0.10,
+        hspace=0.6,
+        wspace=0.4
+    )
+
     return fig, ax
 
 async def generate_calendar_report(room_id: int):
@@ -97,7 +151,7 @@ async def generate_calendar_report(room_id: int):
     # Шаг 1: Получаем данные
     async with async_session_maker() as session:
         records = await BookingDAO(session).get_bookings_with_details(room_id)
-    
+
     # Шаг 2: Извлекаем периоды
     date_periods = []
     for record in records:
@@ -107,24 +161,24 @@ async def generate_calendar_report(room_id: int):
                 'end': record[0].date_end,
                 'number': record[0].id
             })
-    
+
     if not date_periods:
         raise ValueError("Не найдено записей с датами для построения календаря")
-    
+
     # Шаг 3: Нормализуем даты
     date_periods = normalize_dates(date_periods)
-    
+
     # Шаг 4: Определяем границы
     min_date = min(p['start'] for p in date_periods) - timedelta(weeks=1)
     max_date = max(p['end'] for p in date_periods) + timedelta(weeks=1)
-    
+
     # Шаг 5: Строим график
     fig, ax = create_calendar_plot(date_periods, min_date, max_date)
-    
+
     # Шаг 6: Сохраняем
     output_path = f"calendar_report_{room_id}.png"
     fig.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close(fig)
-    
+
     print(f"Календарный отчёт успешно создан: {output_path}")
     return output_path
