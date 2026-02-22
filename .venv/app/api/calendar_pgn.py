@@ -128,5 +128,3 @@ async def generate_calendar_report(room_id: int):
     
     print(f"Календарный отчёт успешно создан: {output_path}")
     return output_path
-
-generate_calendar_report(room_id=1)

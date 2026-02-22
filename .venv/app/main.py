@@ -6,6 +6,7 @@ from aiogram.types import Update
 from fastapi import FastAPI, Request
 from loguru import logger
 from app.api.router import disable_booking, send_admin_msg, show_rooms
+from app.api.calendar_pgn import generate_calendar_report
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -30,6 +31,7 @@ async def lifespan(app: FastAPI):
         allowed_updates=dp.resolve_used_update_types(),
         drop_pending_updates=True
     )
+    await generate_calendar_report(room_id=1)
     logger.success(f"Вебхук установлен: {webhook_url}")
     yield
     logger.info("Бот остановлен...")
