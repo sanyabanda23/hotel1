@@ -24,7 +24,7 @@ def normalize_dates(periods):
         })
     return normalized
 
-def create_calendar_plot(periods, min_date, max_date):
+def create_calendar_plot(periods, min_date, max_date, room_id):
     if not periods:
         raise ValueError("Список периодов пуст — невозможно построить календарь")
 
@@ -36,12 +36,18 @@ def create_calendar_plot(periods, min_date, max_date):
     months_per_row = 3
     rows = (num_months + months_per_row - 1) // months_per_row
     fig_width = 3  # фиксированная ширина для 3 месяцев
-    fig_height = rows * 4  # 4 дюйма на ряд месяцев
+    fig_height = rows * 3  # 3 дюйма на ряд месяцев
 
     fig, ax = plt.subplots(figsize=(fig_width, fig_height))
 
     # Отключаем оси
     ax.axis('off')
+
+    # Добавляем общий заголовок для всего календаря
+    fig.suptitle(f"Календарь №{room_id}",
+                fontsize=16,
+                fontweight='bold',
+                y=0.98)  # позиция по вертикали (0.98 — близко к верхнему краю)
 
     # Функция для отрисовки месяца в сетке
     def draw_month_in_grid(year, month, grid_x, grid_y):
@@ -50,15 +56,15 @@ def create_calendar_plot(periods, min_date, max_date):
 
         # Позиция месяца в сетке (каждый месяц занимает область 2.5x2.5)
         x_offset = grid_x * 1.1
-        y_offset = grid_y * 1.1
+        y_offset = (rows - 1 - grid_y) * 1.1
 
         # Заголовок месяца над календарём
-        ax.text(x_offset + 0.3, y_offset + 0.5, f"{month_name} {year}",
+        ax.text(x_offset + 0.3, y_offset + 0.345, f"{month_name} {year}",
                 ha='center', va='center', fontsize=14, fontweight='bold')
         
         # Дни недели над календарём месяца
         for d, day_name in enumerate(['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']):
-            ax.text(x_offset + d * 0.13, y_offset + 0.35, day_name,
+            ax.text(x_offset + d * 0.13, y_offset + 0.30, day_name,
                     ha='center', va='center', fontsize=14, fontweight='bold', color='darkblue')
 
         for week_idx, week in enumerate(cal):
@@ -76,17 +82,7 @@ def create_calendar_plot(periods, min_date, max_date):
                 # Проверяем все периоды для текущей даты
                 for period in periods:
                     if period['start'] <= day_date <= period['end']:
-                        # Выделяем ячейку цветом
-                        rect = Rectangle(
-                                        (cell_x - 0.10, cell_y - 0.10),
-                                        0.20, 0.20,
-                                        facecolor='lightyellow',
-                                        edgecolor='orange',
-                                        linewidth=1.2,
-                                        alpha=0.8
-                                        )
-                        ax.add_patch(rect)
-
+                        
                         # Оставляем дату, но делаем её более заметной
                         ax.text(
                                 cell_x,
@@ -173,7 +169,7 @@ async def generate_calendar_report(room_id: int):
     max_date = max(p['end'] for p in date_periods) + timedelta(weeks=1)
 
     # Шаг 5: Строим график
-    fig, ax = create_calendar_plot(date_periods, min_date, max_date)
+    fig, ax = create_calendar_plot(date_periods, min_date, max_date, room_id)
 
     # Шаг 6: Сохраняем
     output_path = f"calendar_report_{room_id}.png"
