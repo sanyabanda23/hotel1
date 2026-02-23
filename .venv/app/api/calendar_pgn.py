@@ -35,7 +35,7 @@ def create_calendar_plot(periods, min_date, max_date):
     # Ширина: 3 месяца в ряд, высота зависит от количества рядов
     months_per_row = 3
     rows = (num_months + months_per_row - 1) // months_per_row
-    fig_width = 18  # фиксированная ширина для 3 месяцев
+    fig_width = 6  # фиксированная ширина для 3 месяцев
     fig_height = rows * 4  # 4 дюйма на ряд месяцев
 
     fig, ax = plt.subplots(figsize=(fig_width, fig_height))
@@ -49,17 +49,17 @@ def create_calendar_plot(periods, min_date, max_date):
         month_name = calendar.month_name[month]
 
         # Позиция месяца в сетке (каждый месяц занимает область 2.5x2.5)
-        x_offset = grid_x * 2.8
-        y_offset = grid_y * 3.2
+        x_offset = grid_x * 1.1
+        y_offset = grid_y * 1.1
 
         # Заголовок месяца над календарём
-        ax.text(x_offset + 1.4, y_offset + 2.0, f"{month_name} {year}",
-                ha='center', va='center', fontsize=11, fontweight='bold')
+        ax.text(x_offset + 0.08, y_offset + 0.5, f"{month_name} {year}",
+                ha='center', va='center', fontsize=14, fontweight='bold')
         
         # Дни недели над календарём месяца
         for d, day_name in enumerate(['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']):
-            ax.text(x_offset + d * 0.22, y_offset + 1.75, day_name,
-                    ha='center', va='center', fontsize=10, fontweight='bold', color='darkblue')
+            ax.text(x_offset + d * 0.07, y_offset + 0.35, day_name,
+                    ha='center', va='center', fontsize=14, fontweight='bold', color='darkblue')
 
         for week_idx, week in enumerate(cal):
             for day_idx, day in enumerate(week):
@@ -67,7 +67,7 @@ def create_calendar_plot(periods, min_date, max_date):
                     continue
 
                 day_date = date(year, month, day)
-                cell_x = x_offset + day_idx * 0.05
+                cell_x = x_offset + day_idx * 0.07
                 cell_y = y_offset + (2.5 - week_idx) * 0.1  # инвертируем недели
 
                 # Флаг: нашли ли период для этой даты
@@ -94,7 +94,7 @@ def create_calendar_plot(periods, min_date, max_date):
                                 str(day),
                                 ha='center',
                                 va='center',
-                                fontsize=10,
+                                fontsize=14,
                                 fontweight='bold',
                                 color='darkred'
                                 )
@@ -109,7 +109,7 @@ def create_calendar_plot(periods, min_date, max_date):
                 str(day),
                 ha='center',
                 va='center',
-                fontsize=10,
+                fontsize=14,
                 color='black'
             )
 
