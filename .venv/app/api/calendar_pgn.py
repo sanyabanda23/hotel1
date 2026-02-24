@@ -59,7 +59,7 @@ def create_calendar_plot(periods, min_date, max_date, room_id):
         y_offset = (rows - 1 - grid_y) * 1.1
 
         # Заголовок месяца над календарём
-        ax.text(x_offset + 0.3, y_offset + 0.345, f"{month_name} {year}",
+        ax.text(x_offset + 0.3, y_offset + 0.4, f"{month_name} {year}",
                 ha='center', va='center', fontsize=14, fontweight='bold')
         
         # Дни недели над календарём месяца

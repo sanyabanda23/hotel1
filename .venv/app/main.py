@@ -31,7 +31,6 @@ async def lifespan(app: FastAPI):
         allowed_updates=dp.resolve_used_update_types(),
         drop_pending_updates=True
     )
-    await generate_calendar_report(room_id=1)
     logger.success(f"Вебхук установлен: {webhook_url}")
     yield
     logger.info("Бот остановлен...")

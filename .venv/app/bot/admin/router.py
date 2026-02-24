@@ -1,10 +1,12 @@
+from loguru import logger
 from aiogram import Router, F
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message, InlineKeyboardButton, InlineKeyboardMarkup, CopyTextButton
+from aiogram.types import CallbackQuery, Message, InlineKeyboardButton, InlineKeyboardMarkup, CopyTextButton, InputMediaPhoto
 from aiogram_dialog import DialogManager, StartMode
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types.input_file import FSInputFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.booking.state import BookingState
@@ -14,6 +16,7 @@ from app.bot.admin.schemas import SNewPay, SCheckUser
 from app.bot.admin.kbs import main_user_kb, cancel_pay_book_kb, clear_yes_no_kb, info_kb
 from app.config import settings
 from app.dao.dao import UserDAO, BookingDAO, PayDAO, RoomDAO
+from app.api.calendar_pgn import generate_calendar_report
 
 router = Router()
 
@@ -21,10 +24,45 @@ router = Router()
 async def cmd_start(message: Message, session_with_commit: AsyncSession, state: FSMContext):
     await state.clear()
     user_id = message.from_user.id
-    text = ("👋 Добро пожаловать! 🏡\n\n"
+
+    media = []
+    successful_generations = 0
+
+    # Генерируем календари для room_id от 1 до 4
+    for room_id in range(1, 5):
+        try:
+            if await generate_calendar_report(room_id=room_id):
+                file_path = f'calendar_report_{room_id}.png'
+                media.append(InputMediaPhoto(media=FSInputFile(file_path)))
+                successful_generations += 1
+                logger.info(f"Календарь для room_id={room_id} успешно сгенерирован и добавлен в медиагруппу")
+            else:
+                logger.warning(f"generate_calendar_report вернул False для room_id={room_id}")
+        except FileNotFoundError:
+            logger.error(f"Файл calendar_report_{room_id}.png не найден")
+        except Exception as e:
+            logger.error(f"Ошибка при генерации календаря для room_id={room_id}: {e}")
+
+    # Отправляем медиагруппу, только если есть хотя бы одно фото
+    if media:
+        try:
+            await message.answer_media_group(media=media)
+            logger.info(f"Отправлено {successful_generations} календарей пользователю {user_id}")
+        except Exception as e:
+            logger.error(f"Ошибка отправки медиагруппы: {e}")
+            # Если отправка медиагруппы не удалась, отправляем сообщение об ошибке
+            await message.answer("⚠️ Не удалось загрузить календари. Попробуйте позже.")
+    else:
+        logger.warning("Не удалось сгенерировать ни одного календаря для отправки")
+        await message.answer("📅 Календари пока недоступны. Попробуйте позже.")
+
+    # Отправляем приветственное сообщение
+    welcome_text = (
+        "👋 Добро пожаловать! 🏡\n\n"
         "Здесь ты сможешь организовать свою деятельность. 💡💼\n"
-        "Используйте клавиатуру ниже, чтобы зарезервировать бронь и получить любую информацию! 📱")
-    await message.answer(text, reply_markup=main_user_kb(user_id))
+        "Используйте клавиатуру ниже, чтобы зарезервировать бронь и получить любую информацию! 📱"
+    )
+    await message.answer(text=welcome_text, reply_markup=main_user_kb(user_id))
 
 ### Реакция на кнопку Внести заявку на бронь
 @router.callback_query(F.data == "book_room")
