@@ -44,10 +44,10 @@ def create_calendar_plot(periods, min_date, max_date, room_id):
     ax.axis('off')
 
     # Добавляем общий заголовок для всего календаря
-    fig.suptitle(f"Календарь №{room_id}",
-                fontsize=16,
+    fig.suptitle(f"Календарь комнаты №{room_id}",
+                fontsize=20,
                 fontweight='bold',
-                y=0.98)  # позиция по вертикали (0.98 — близко к верхнему краю)
+                y=0.7)  # позиция по вертикали (0.98 — близко к верхнему краю)
 
     # Функция для отрисовки месяца в сетке
     def draw_month_in_grid(year, month, grid_x, grid_y):
