@@ -12,6 +12,8 @@ class User(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     username: Mapped[str | None]
     phone_nom: Mapped[str | None]
+    tg_nik: Mapped[str | None]
+    vk_url: Mapped[str | None]
     description: Mapped[str | None]
     bookings: Mapped[List["Booking"]] = relationship("Booking", back_populates="user")
 

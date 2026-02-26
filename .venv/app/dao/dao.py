@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 from typing import Dict
 from loguru import logger
 from sqlalchemy import select, update, delete, func, and_, extract 
@@ -97,6 +97,7 @@ class BookingDAO(BaseDAO[Booking]):
         :return: Список объектов Booking с загруженными данными о пользователе и общей суммы платежей.
         """
         now = datetime.now(timezone.utc)
+        target_date = now.date() + timedelta(days=1)
         try:
             query = (
                 select(
@@ -106,7 +107,7 @@ class BookingDAO(BaseDAO[Booking]):
                     .join(self.model.user)           # JOIN для пользователя
                     .join(self.model.room)
                     .outerjoin(self.model.pays)     # LEFT JOIN для платежей
-                    .filter(self.model.date_end == now.date())
+                    .filter(self.model.date_end == target_date)
                     .group_by(self.model.id)         # Группировка по ID бронирования
                     .options(
                             joinedload(self.model.user),      # ← Правильно: через .options()

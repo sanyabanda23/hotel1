@@ -15,19 +15,36 @@ async def cancel_logic(callback: CallbackQuery, button: Button, dialog_manager: 
 async def on_phone_input(message: Message, dialog: Dialog, dialog_manager: DialogManager):
     """Обработчик ввода номера телефона и проверки номера среди пользователей."""
     session = dialog_manager.middleware_data.get("session_without_commit")
+    
+    # Очистка номера от лишних символов
     cleaned_phone = (
         message.text
         .replace(' ', '').replace('(', '').replace(')', '')
-        .replace('+7', '8').replace('-', '')
+        .replace('-', '')
     )
     
-    # Проверка: 11 цифр, начинается с 8
-    if not (cleaned_phone.isdigit() and len(cleaned_phone) == 11 and cleaned_phone.startswith('8')):
-        await message.answer("Некорректный формат номера. Введите номер в формате +7ХХХХХХХХХХХ.")
+    # Нормализация: +7 → 8 для РФ, +380 → 380 для Украины
+    if cleaned_phone.startswith('+7'):
+        cleaned_phone = '8' + cleaned_phone[2:]
+    elif cleaned_phone.startswith('+380'):
+        cleaned_phone = '380' + cleaned_phone[4:]
+    
+    # Проверка форматов: РФ (11 цифр, начинается с 8) или Украина (12 цифр, начинается с 380)
+    is_russian = cleaned_phone.isdigit() and len(cleaned_phone) == 11 and cleaned_phone.startswith('8')
+    is_ukrainian = cleaned_phone.isdigit() and len(cleaned_phone) == 12 and cleaned_phone.startswith('380')
+    
+    if not (is_russian or is_ukrainian):
+        await message.answer(
+            "Некорректный формат номера. "
+            "Введите номер в формате:\n"
+            "• +7ХХХХХХХХХХХ (Россия)\n"
+            "• +380ХХХХХХХХХ (Украина)"
+        )
         return  # Остаёмся в текущем состоянии
     
     find_model = UserPhoneFilter(phone_nom=cleaned_phone)
-    user = await UserDAO(session).find_one_or_none(find_model) 
+    user = await UserDAO(session).find_one_or_none(find_model)
+    
     if user:
         dialog_manager.dialog_data["phone_nom"] = user.phone_nom
         await dialog_manager.switch_to(BookingState.check_nom)

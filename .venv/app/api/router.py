@@ -31,7 +31,7 @@ async def send_admin_msg():
             if action == "check_in":
                 header = f"<b>Сегодня заселяется номер №{booking.room_id}!</b>"
             else:
-                header = f"<b>Сегодня выезжают гости из номера №{booking.room_id}!</b>"
+                header = f"<b>Завтра выезжают гости из номера №{booking.room_id}!</b>"
 
             return (
                 f"{header}\n"
