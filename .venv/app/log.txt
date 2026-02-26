@@ -3432,3 +3432,84 @@ phone_nom
 2026-02-26 at 08:32:00 | INFO | Сообщение о выезде №5 отправлено админу 464574810
 2026-02-26 at 13:26:11 | INFO | Бот остановлен...
 2026-02-26 at 13:26:11 | ERROR | Бот остановлен!
+2026-02-26 at 14:08:26 | INFO | Бот запущен...
+2026-02-26 at 14:08:27 | INFO | Бот успешно запущен.
+2026-02-26 at 14:08:27 | SUCCESS | Вебхук установлен: https://058k4jnw-8000.euw.devtunnels.ms/webhook
+2026-02-26 at 14:09:46 | INFO | Бот остановлен...
+2026-02-26 at 14:09:46 | ERROR | Бот остановлен!
+2026-02-26 at 14:10:01 | INFO | Бот запущен...
+2026-02-26 at 14:10:01 | INFO | Бот успешно запущен.
+2026-02-26 at 14:10:01 | SUCCESS | Вебхук установлен: https://058k4jnw-8000.euw.devtunnels.ms/webhook
+2026-02-26 at 14:10:40 | INFO | Бот остановлен...
+2026-02-26 at 14:10:41 | ERROR | Бот остановлен!
+2026-02-26 at 14:13:27 | INFO | Бот запущен...
+2026-02-26 at 14:13:27 | INFO | Бот успешно запущен.
+2026-02-26 at 14:13:27 | SUCCESS | Вебхук установлен: https://d35pv37s-8000.euw.devtunnels.ms/webhook
+2026-02-26 at 14:13:43 | INFO | Получен запрос с вебхука.
+2026-02-26 at 14:13:43 | ERROR | Ошибка при получении бронирований с деталями: (sqlite3.OperationalError) no such table: bookings
+[SQL: SELECT bookings.id, bookings.user_id, bookings.room_id, bookings.date_start, bookings.date_end, bookings.status, bookings.cost, bookings.created_at, bookings.updated_at, sum(pays.summ) AS total_payment, users_1.id AS id_1, users_1.username, users_1.phone_nom, users_1.tg_nik, users_1.vk_url, users_1.description, users_1.created_at AS created_at_1, users_1.updated_at AS updated_at_1, rooms_1.id AS id_2, rooms_1.url_photo, rooms_1.description AS description_1, rooms_1.created_at AS created_at_2, rooms_1.updated_at AS updated_at_2 
+FROM bookings JOIN users ON users.id = bookings.user_id JOIN rooms ON rooms.id = bookings.room_id LEFT OUTER JOIN pays ON bookings.id = pays.id_booking LEFT OUTER JOIN users AS users_1 ON users_1.id = bookings.user_id LEFT OUTER JOIN rooms AS rooms_1 ON rooms_1.id = bookings.room_id 
+WHERE bookings.room_id = ? AND bookings.date_end >= ? GROUP BY bookings.id]
+[parameters: (1, '2026-02-26 11:13:43.435103')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-02-26 at 14:13:43 | ERROR | Ошибка при генерации календаря для room_id=1: Не найдено записей с датами для построения календаря
+2026-02-26 at 14:13:43 | ERROR | Ошибка при получении бронирований с деталями: (sqlite3.OperationalError) no such table: bookings
+[SQL: SELECT bookings.id, bookings.user_id, bookings.room_id, bookings.date_start, bookings.date_end, bookings.status, bookings.cost, bookings.created_at, bookings.updated_at, sum(pays.summ) AS total_payment, users_1.id AS id_1, users_1.username, users_1.phone_nom, users_1.tg_nik, users_1.vk_url, users_1.description, users_1.created_at AS created_at_1, users_1.updated_at AS updated_at_1, rooms_1.id AS id_2, rooms_1.url_photo, rooms_1.description AS description_1, rooms_1.created_at AS created_at_2, rooms_1.updated_at AS updated_at_2 
+FROM bookings JOIN users ON users.id = bookings.user_id JOIN rooms ON rooms.id = bookings.room_id LEFT OUTER JOIN pays ON bookings.id = pays.id_booking LEFT OUTER JOIN users AS users_1 ON users_1.id = bookings.user_id LEFT OUTER JOIN rooms AS rooms_1 ON rooms_1.id = bookings.room_id 
+WHERE bookings.room_id = ? AND bookings.date_end >= ? GROUP BY bookings.id]
+[parameters: (2, '2026-02-26 11:13:43.464170')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-02-26 at 14:13:43 | ERROR | Ошибка при генерации календаря для room_id=2: Не найдено записей с датами для построения календаря
+2026-02-26 at 14:13:43 | ERROR | Ошибка при получении бронирований с деталями: (sqlite3.OperationalError) no such table: bookings
+[SQL: SELECT bookings.id, bookings.user_id, bookings.room_id, bookings.date_start, bookings.date_end, bookings.status, bookings.cost, bookings.created_at, bookings.updated_at, sum(pays.summ) AS total_payment, users_1.id AS id_1, users_1.username, users_1.phone_nom, users_1.tg_nik, users_1.vk_url, users_1.description, users_1.created_at AS created_at_1, users_1.updated_at AS updated_at_1, rooms_1.id AS id_2, rooms_1.url_photo, rooms_1.description AS description_1, rooms_1.created_at AS created_at_2, rooms_1.updated_at AS updated_at_2 
+FROM bookings JOIN users ON users.id = bookings.user_id JOIN rooms ON rooms.id = bookings.room_id LEFT OUTER JOIN pays ON bookings.id = pays.id_booking LEFT OUTER JOIN users AS users_1 ON users_1.id = bookings.user_id LEFT OUTER JOIN rooms AS rooms_1 ON rooms_1.id = bookings.room_id 
+WHERE bookings.room_id = ? AND bookings.date_end >= ? GROUP BY bookings.id]
+[parameters: (3, '2026-02-26 11:13:43.466761')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-02-26 at 14:13:43 | ERROR | Ошибка при генерации календаря для room_id=3: Не найдено записей с датами для построения календаря
+2026-02-26 at 14:13:43 | ERROR | Ошибка при получении бронирований с деталями: (sqlite3.OperationalError) no such table: bookings
+[SQL: SELECT bookings.id, bookings.user_id, bookings.room_id, bookings.date_start, bookings.date_end, bookings.status, bookings.cost, bookings.created_at, bookings.updated_at, sum(pays.summ) AS total_payment, users_1.id AS id_1, users_1.username, users_1.phone_nom, users_1.tg_nik, users_1.vk_url, users_1.description, users_1.created_at AS created_at_1, users_1.updated_at AS updated_at_1, rooms_1.id AS id_2, rooms_1.url_photo, rooms_1.description AS description_1, rooms_1.created_at AS created_at_2, rooms_1.updated_at AS updated_at_2 
+FROM bookings JOIN users ON users.id = bookings.user_id JOIN rooms ON rooms.id = bookings.room_id LEFT OUTER JOIN pays ON bookings.id = pays.id_booking LEFT OUTER JOIN users AS users_1 ON users_1.id = bookings.user_id LEFT OUTER JOIN rooms AS rooms_1 ON rooms_1.id = bookings.room_id 
+WHERE bookings.room_id = ? AND bookings.date_end >= ? GROUP BY bookings.id]
+[parameters: (4, '2026-02-26 11:13:43.469052')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-02-26 at 14:13:43 | ERROR | Ошибка при генерации календаря для room_id=4: Не найдено записей с датами для построения календаря
+2026-02-26 at 14:13:43 | WARNING | Не удалось сгенерировать ни одного календаря для отправки
+2026-02-26 at 14:13:43 | INFO | Обновление успешно обработано.
+2026-02-26 at 14:14:42 | INFO | Получен запрос с вебхука.
+2026-02-26 at 14:14:42 | ERROR | Ошибка при получении бронирований с деталями: (sqlite3.OperationalError) no such table: bookings
+[SQL: SELECT bookings.id, bookings.user_id, bookings.room_id, bookings.date_start, bookings.date_end, bookings.status, bookings.cost, bookings.created_at, bookings.updated_at, sum(pays.summ) AS total_payment, users_1.id AS id_1, users_1.username, users_1.phone_nom, users_1.tg_nik, users_1.vk_url, users_1.description, users_1.created_at AS created_at_1, users_1.updated_at AS updated_at_1, rooms_1.id AS id_2, rooms_1.url_photo, rooms_1.description AS description_1, rooms_1.created_at AS created_at_2, rooms_1.updated_at AS updated_at_2 
+FROM bookings JOIN users ON users.id = bookings.user_id JOIN rooms ON rooms.id = bookings.room_id LEFT OUTER JOIN pays ON bookings.id = pays.id_booking LEFT OUTER JOIN users AS users_1 ON users_1.id = bookings.user_id LEFT OUTER JOIN rooms AS rooms_1 ON rooms_1.id = bookings.room_id 
+WHERE bookings.room_id = ? AND bookings.date_end >= ? GROUP BY bookings.id]
+[parameters: (1, '2026-02-26 11:14:42.359089')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-02-26 at 14:14:42 | ERROR | Ошибка при генерации календаря для room_id=1: Не найдено записей с датами для построения календаря
+2026-02-26 at 14:14:42 | ERROR | Ошибка при получении бронирований с деталями: (sqlite3.OperationalError) no such table: bookings
+[SQL: SELECT bookings.id, bookings.user_id, bookings.room_id, bookings.date_start, bookings.date_end, bookings.status, bookings.cost, bookings.created_at, bookings.updated_at, sum(pays.summ) AS total_payment, users_1.id AS id_1, users_1.username, users_1.phone_nom, users_1.tg_nik, users_1.vk_url, users_1.description, users_1.created_at AS created_at_1, users_1.updated_at AS updated_at_1, rooms_1.id AS id_2, rooms_1.url_photo, rooms_1.description AS description_1, rooms_1.created_at AS created_at_2, rooms_1.updated_at AS updated_at_2 
+FROM bookings JOIN users ON users.id = bookings.user_id JOIN rooms ON rooms.id = bookings.room_id LEFT OUTER JOIN pays ON bookings.id = pays.id_booking LEFT OUTER JOIN users AS users_1 ON users_1.id = bookings.user_id LEFT OUTER JOIN rooms AS rooms_1 ON rooms_1.id = bookings.room_id 
+WHERE bookings.room_id = ? AND bookings.date_end >= ? GROUP BY bookings.id]
+[parameters: (2, '2026-02-26 11:14:42.363614')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-02-26 at 14:14:42 | ERROR | Ошибка при генерации календаря для room_id=2: Не найдено записей с датами для построения календаря
+2026-02-26 at 14:14:42 | ERROR | Ошибка при получении бронирований с деталями: (sqlite3.OperationalError) no such table: bookings
+[SQL: SELECT bookings.id, bookings.user_id, bookings.room_id, bookings.date_start, bookings.date_end, bookings.status, bookings.cost, bookings.created_at, bookings.updated_at, sum(pays.summ) AS total_payment, users_1.id AS id_1, users_1.username, users_1.phone_nom, users_1.tg_nik, users_1.vk_url, users_1.description, users_1.created_at AS created_at_1, users_1.updated_at AS updated_at_1, rooms_1.id AS id_2, rooms_1.url_photo, rooms_1.description AS description_1, rooms_1.created_at AS created_at_2, rooms_1.updated_at AS updated_at_2 
+FROM bookings JOIN users ON users.id = bookings.user_id JOIN rooms ON rooms.id = bookings.room_id LEFT OUTER JOIN pays ON bookings.id = pays.id_booking LEFT OUTER JOIN users AS users_1 ON users_1.id = bookings.user_id LEFT OUTER JOIN rooms AS rooms_1 ON rooms_1.id = bookings.room_id 
+WHERE bookings.room_id = ? AND bookings.date_end >= ? GROUP BY bookings.id]
+[parameters: (3, '2026-02-26 11:14:42.367118')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-02-26 at 14:14:42 | ERROR | Ошибка при генерации календаря для room_id=3: Не найдено записей с датами для построения календаря
+2026-02-26 at 14:14:42 | ERROR | Ошибка при получении бронирований с деталями: (sqlite3.OperationalError) no such table: bookings
+[SQL: SELECT bookings.id, bookings.user_id, bookings.room_id, bookings.date_start, bookings.date_end, bookings.status, bookings.cost, bookings.created_at, bookings.updated_at, sum(pays.summ) AS total_payment, users_1.id AS id_1, users_1.username, users_1.phone_nom, users_1.tg_nik, users_1.vk_url, users_1.description, users_1.created_at AS created_at_1, users_1.updated_at AS updated_at_1, rooms_1.id AS id_2, rooms_1.url_photo, rooms_1.description AS description_1, rooms_1.created_at AS created_at_2, rooms_1.updated_at AS updated_at_2 
+FROM bookings JOIN users ON users.id = bookings.user_id JOIN rooms ON rooms.id = bookings.room_id LEFT OUTER JOIN pays ON bookings.id = pays.id_booking LEFT OUTER JOIN users AS users_1 ON users_1.id = bookings.user_id LEFT OUTER JOIN rooms AS rooms_1 ON rooms_1.id = bookings.room_id 
+WHERE bookings.room_id = ? AND bookings.date_end >= ? GROUP BY bookings.id]
+[parameters: (4, '2026-02-26 11:14:42.370693')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-02-26 at 14:14:42 | ERROR | Ошибка при генерации календаря для room_id=4: Не найдено записей с датами для построения календаря
+2026-02-26 at 14:14:42 | WARNING | Не удалось сгенерировать ни одного календаря для отправки
+2026-02-26 at 14:14:42 | INFO | Обновление успешно обработано.
+2026-02-26 at 14:15:02 | INFO | Получен запрос с вебхука.
+2026-02-26 at 14:15:02 | INFO | Обновление успешно обработано.
+2026-02-26 at 14:15:04 | INFO | Получен запрос с вебхука.
+2026-02-26 at 14:15:05 | INFO | Обновление успешно обработано.
+2026-02-26 at 14:15:13 | INFO | Бот остановлен...
+2026-02-26 at 14:15:14 | ERROR | Бот остановлен!
