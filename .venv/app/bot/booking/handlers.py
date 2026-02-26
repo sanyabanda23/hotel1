@@ -2,7 +2,7 @@ from datetime import date
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, Dialog
 from aiogram_dialog.widgets.kbd import Button
-from app.bot.booking.schemas import SNewUser, SNewBooking, UserPhoneFilter
+from app.bot.booking.schemas import SNewUser, SNewBooking, UserPhoneFilter, UserTgNikFilter, UserVkUrlFilter
 from app.bot.booking.state import BookingState
 from app.bot.admin.kbs import main_user_kb
 from app.dao.dao import BookingDAO, UserDAO, RoomDAO
@@ -11,6 +11,25 @@ async def cancel_logic(callback: CallbackQuery, button: Button, dialog_manager: 
     await callback.answer("Сценарий бронирования отменен!")
     await callback.message.answer("Вы отменили сценарий бронирования.",
                                   reply_markup=main_user_kb(callback.from_user.id))
+
+async def cancel_input_phone(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    dialog_manager.dialog_data['phone_nom'] = "отсутствует"
+    await dialog_manager.switch_to(BookingState.tg_nik)
+
+async def cancel_input_tg(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    dialog_manager.dialog_data['tg_nik'] = "отсутствует"
+    await dialog_manager.switch_to(BookingState.vk_url)
+
+async def cancel_input_vk(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    if dialog_manager.dialog_data['tg_nik'] and dialog_manager.dialog_data['phone_nom'] == "отсутствует":
+        text = (f"Невозможно добавить бронь,\n"
+                f"не указав контакты гостя!\n"
+                f"Укажи хотя бы один способ для связи.") 
+        await callback.message.answer(text)
+        await dialog_manager.switch_to(BookingState.phone_nom)
+    else:
+        dialog_manager.dialog_data['vk_url'] = "отсутствует"
+        await dialog_manager.switch_to(BookingState.name)
 
 async def on_phone_input(message: Message, dialog: Dialog, dialog_manager: DialogManager):
     """Обработчик ввода номера телефона и проверки номера среди пользователей."""
@@ -50,6 +69,34 @@ async def on_phone_input(message: Message, dialog: Dialog, dialog_manager: Dialo
         await dialog_manager.switch_to(BookingState.check_nom)
     else:
         dialog_manager.dialog_data["phone_nom"] = cleaned_phone
+        await dialog_manager.switch_to(BookingState.tg_nik)
+
+async def on_tg_input(message: Message, dialog: Dialog, dialog_manager: DialogManager):
+    """Обработчик ввода номера телефона и проверки номера среди пользователей."""
+    session = dialog_manager.middleware_data.get("session_without_commit")
+        
+    find_model = UserTgNikFilter(tg_nik=message.text)
+    user = await UserDAO(session).find_one_or_none(find_model)
+    
+    if user:
+        dialog_manager.dialog_data["tg_nik"] = user.tg_nik
+        await dialog_manager.switch_to(BookingState.check_tg)
+    else:
+        dialog_manager.dialog_data["tg_nik"] = message.text
+        await dialog_manager.switch_to(BookingState.vk_url)
+
+async def on_vk_input(message: Message, dialog: Dialog, dialog_manager: DialogManager):
+    """Обработчик ввода номера телефона и проверки номера среди пользователей."""
+    session = dialog_manager.middleware_data.get("session_without_commit")
+        
+    find_model = UserVkUrlFilter(vk_url=message.text)
+    user = await UserDAO(session).find_one_or_none(find_model)
+    
+    if user:
+        dialog_manager.dialog_data["vk_url"] = user.tg_nik
+        await dialog_manager.switch_to(BookingState.check_vk)
+    else:
+        dialog_manager.dialog_data["vk_url"] = message.text
         await dialog_manager.switch_to(BookingState.name)
 
 async def on_name_input(message: Message, dialog: Dialog, dialog_manager: DialogManager):
@@ -65,21 +112,54 @@ async def on_confirmation_user_yes(callback: CallbackQuery, widget, dialog_manag
     session = dialog_manager.middleware_data.get("session_with_commit")
 
     # Получаем выбранные данные
-    phone_nomber = dialog_manager.dialog_data['phone_nom']
+    phone_number = dialog_manager.dialog_data['phone_nom']
+    tg_nik = dialog_manager.dialog_data['tg_nik']
+    vk_url = dialog_manager.dialog_data['vk_url']
     user_name = dialog_manager.dialog_data['name']
     description_user = dialog_manager.dialog_data['description_user']
+
     await callback.answer("Приступаю к сохранению")
-    select_user = await UserDAO(session).find_one_or_none(UserPhoneFilter(phone_nom=phone_nomber))
-    if select_user:
-        filters_model = UserPhoneFilter(phone_nom=phone_nomber)
-        values_model = SNewUser(username=user_name, phone_nom=phone_nomber, description=description_user)
-        await UserDAO(session).update(filters=filters_model, values=values_model)
-        await callback.answer(f"Информация о госте обновлена!")
-    else:
-        add_model = SNewUser(phone_nom=phone_nomber,
-                               username=user_name, description=description_user)
-        await UserDAO(session).add(add_model)
-        await callback.answer(f"Гость успешно добавлен!")
+
+    try:
+        # Создаём модель данных для обновления/добавления
+        values_model = SNewUser(
+            username=user_name,
+            phone_nom=phone_number,
+            tg_nik=tg_nik,
+            vk_url=vk_url,
+            description=description_user
+        )
+
+        # Определяем фильтры для поиска пользователя в порядке приоритета
+        search_filters = []
+        if phone_number != "отсутствует":
+            search_filters.append(UserPhoneFilter(phone_nom=phone_number))
+        if tg_nik != "отсутствует":
+            search_filters.append(UserTgNikFilter(tg_nik=tg_nik))
+        if vk_url != "отсутствует":
+            search_filters.append(UserVkUrlFilter(vk_url=vk_url))
+
+        user_found = False
+
+        # Ищем пользователя по каждому фильтру в порядке приоритета
+        for filter_model in search_filters:
+            existing_user = await UserDAO(session).find_one_or_none(filter_model)
+            if existing_user:
+                # Обновляем найденного пользователя
+                await UserDAO(session).update(filters=filter_model, values=values_model)
+                await callback.answer("Информация о госте обновлена!")
+                user_found = True
+                break
+
+        # Если пользователь не найден ни по одному фильтру — добавляем нового
+        if not user_found:
+            await UserDAO(session).add(values_model)
+            await callback.answer("Гость успешно добавлен!")
+
+    except Exception as e:
+        await callback.answer("Произошла ошибка при сохранении данных. Попробуйте ещё раз.")
+        raise  # Передаём исключение дальше для логирования
+
     await dialog_manager.switch_to(BookingState.room)
 
 async def on_confirmation_user_no(callback: CallbackQuery, dialog: Dialog, dialog_manager: DialogManager):

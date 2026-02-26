@@ -4,6 +4,10 @@ from aiogram.fsm.state import StatesGroup, State
 class BookingState(StatesGroup):
     phone_nom = State()
     check_nom = State()
+    tg_nik = State()
+    check_tg = State()
+    vk_url = State()
+    check_vk = State()
     name = State()
     description_user = State()
     check_user = State()
