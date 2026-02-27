@@ -93,7 +93,7 @@ async def on_vk_input(message: Message, dialog: Dialog, dialog_manager: DialogMa
     user = await UserDAO(session).find_one_or_none(find_model)
     
     if user:
-        dialog_manager.dialog_data["vk_url"] = user.tg_nik
+        dialog_manager.dialog_data["vk_url"] = user.vk_url
         await dialog_manager.switch_to(BookingState.check_vk)
     else:
         dialog_manager.dialog_data["vk_url"] = message.text
