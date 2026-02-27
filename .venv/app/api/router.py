@@ -21,6 +21,8 @@ async def send_admin_msg():
             user = booking.user
             username = (user.username or "Не указано") if user else "Не указан"
             phone = (user.phone_nom or "Не указан") if user else "Не указан"
+            tg_nik = (user.tg_nik or "Не указан") if user else "Не указан"
+            vk_url = (user.vk_url or "Не указан") if user else "Не указан"
             description = (user.description or "Нет описания") if user else "Нет данных"
 
 
@@ -41,6 +43,8 @@ async def send_admin_msg():
                 f"💸 Внесена оплата: {total_payment} рублей\n"
                 f"  - 👤 Имя гостя: {username}\n"
                 f"  - 📱 Контактный телефон: {phone}\n"
+                f"  - 💬 Ник в telegram: {tg_nik}\n"
+                f"  - 🌐 Профиль в ВК: {vk_url}\n"
                 f"  - 📝 Описание: {description}"
             )
 

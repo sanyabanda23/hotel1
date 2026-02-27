@@ -109,6 +109,8 @@ async def yes_output_last_bookings(callback: CallbackQuery, state: FSMContext, s
         booking_pay = total_payment
         booking_user = book.user.username
         phone_number = book.user.phone_nom
+        tg_nik = book.user.tg_nik
+        vk_url = book.user.vk_url
         description = book.user.description
         if booking_status == "booked":
             status_text = "Забронирован"
@@ -121,6 +123,8 @@ async def yes_output_last_bookings(callback: CallbackQuery, state: FSMContext, s
                         f"💸 Внесена оплата: {booking_pay} рублей\n"
                         f"  - 👤 Имя гостя: {booking_user}\n"
                         f"  - 📱 Контактный телефон: {phone_number}\n"
+                        f"  - 💬 Ник в telegram: {tg_nik}\n"
+                        f"  - 🌐 Профиль в ВК: {vk_url}\n"
                         f"  - 📝 Описание: {description}")
         if last_booking_id == booking_number:
             home_page = True
