@@ -111,16 +111,21 @@ async def get_confirmed_data_booking(dialog_manager: DialogManager, **kwargs):
     search_filters = []
     if dialog_manager.dialog_data["phone_nom"] != "отсутствует":
         search_filters.append(UserPhoneFilter(phone_nom=dialog_manager.dialog_data["phone_nom"]))
-    if dialog_manager.dialog_data["tg_nik"] != "отсутствует":
+    elif dialog_manager.dialog_data["tg_nik"] != "отсутствует":
         search_filters.append(UserTgNikFilter(tg_nik=dialog_manager.dialog_data["tg_nik"]))
-    if dialog_manager.dialog_data["vk_url"] != "отсутствует":
+    elif dialog_manager.dialog_data["vk_url"] != "отсутствует":
         search_filters.append(UserVkUrlFilter(vk_url=dialog_manager.dialog_data["vk_url"]))
 
 
         # Ищем пользователя по каждому фильтру в порядке приоритета
     for filter_model in search_filters:
             user = await UserDAO(session).find_one_or_none(filter_model)
-            break
+            if user:
+                print(f"Нашел пользователя №{user.id}")
+                break
+            else:
+                print("В этот раз не получилось")
+            
 
     dialog_manager.dialog_data["user_id"] = user.id
     selected_room_id = dialog_manager.dialog_data["selected_room_id"]
