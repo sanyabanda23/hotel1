@@ -217,7 +217,7 @@ async def on_cost_input(message: Message, dialog: Dialog, dialog_manager: Dialog
     if user_input.isdigit():
         # Преобразуем в число для дальнейших расчётов
         dialog_manager.dialog_data["cost"] = int(user_input)
-        await dialog_manager.next()  # Переход к следующему шагу
+        await dialog_manager.switch_to(BookingState.confirmation)  # Переход к следующему шагу
     else:
         # Сообщение об ошибке + просьба повторить ввод
         await message.answer(
