@@ -59,3 +59,17 @@ def info_kb(user_id: int) -> InlineKeyboardMarkup:
         kb.add(InlineKeyboardButton(text="🏠 На главную", callback_data="back_home_info"))
     kb.adjust(1)
     return kb.as_markup()
+
+def update_user_kb(user_id: int, userbook_id: int, home_page: bool = False) -> InlineKeyboardMarkup:
+    kb = InlineKeyboardBuilder()
+    
+    if user_id in settings.ADMIN_IDS:
+        kb.add(InlineKeyboardButton(text="Изменить имя гостя", callback_data=f"name_user_{userbook_id}"))
+        kb.add(InlineKeyboardButton(text="Обновить описание гостя", callback_data=f"description_user_{userbook_id}"))
+        kb.add(InlineKeyboardButton(text="Обновить номер телефона", callback_data=f"phone_user_{userbook_id}"))
+        kb.add(InlineKeyboardButton(text="Обновить профиль в Vk", callback_data=f"vk_user_{userbook_id}"))
+        kb.add(InlineKeyboardButton(text="Обновить контакт в Telegram", callback_data=f"tg_user_{userbook_id}"))
+        if home_page:
+            kb.add(InlineKeyboardButton(text="🏠 На главную", callback_data="back_home_update"))
+    kb.adjust(1)
+    return kb.as_markup()
