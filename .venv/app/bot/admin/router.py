@@ -11,8 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.booking.state import BookingState
 from app.bot.my_bookings.state import MyBookingState
-from app.bot.admin.state import OutputBookingsState, ClearState, CheckUserState
-from app.bot.admin.schemas import SNewPay, SCheckUser
+from app.bot.admin.state import OutputBookingsState, ClearState, FindUserState
+from app.bot.admin.schemas import SNewPay, SCheckUser, SCheckTgUser, SCheckVkUser
 from app.bot.admin.kbs import main_user_kb, cancel_pay_book_kb, clear_yes_no_kb, info_kb
 from app.config import settings
 from app.dao.dao import UserDAO, BookingDAO, PayDAO, RoomDAO
@@ -275,14 +275,89 @@ async def check_user(call: CallbackQuery, state: FSMContext):
     await call.message.answer('Введи номер телефона гостя.')
     await state.set_state(CheckUserState.phone_nom)
 
-@router.message(F.text, CheckUserState.phone_nom)
+@router.message(F.text, FindUserState.input_info)
 async def search_user(msg: Message, state: FSMContext, session_without_commit: AsyncSession):
+    user_tg = await UserDAO(session_without_commit).find_one_or_none(SCheckTgUser(tg_nik=msg.text))
+    user_vk = await UserDAO(session_without_commit).find_one_or_none(SCheckVkUser(vk_url=msg.text))
     cleaned_phone = (
         msg.text
         .replace(' ', '').replace('(', '').replace(')', '')
-        .replace('+7', '8').replace('-', '')
+        .replace('-', '')
     )
     
+    # Нормализация: +7 → 8 для РФ, +380 → 380 для Украины
+    if cleaned_phone.startswith('+7'):
+        cleaned_phone = '8' + cleaned_phone[2:]
+    elif cleaned_phone.startswith('+380'):
+        cleaned_phone = '380' + cleaned_phone[4:]
+    
+    # Проверка форматов: РФ (11 цифр, начинается с 8) или Украина (12 цифр, начинается с 380)
+    is_russian = cleaned_phone.isdigit() and len(cleaned_phone) == 11 and cleaned_phone.startswith('8')
+    is_ukrainian = cleaned_phone.isdigit() and len(cleaned_phone) == 12 and cleaned_phone.startswith('380')
+    
+    if is_russian or is_ukrainian:
+        user = await UserDAO(session_without_commit).find_one_or_none(SCheckUser(phone_nom=cleaned_phone))
+        if user:
+            confirmed_text = (
+                    f"<b>Информация о госте:</b>\n\n"
+                    f"  - 🙋‍♂️ Имя гостя: {user.username}\n"
+                    f"  - 💬 Ник в telegram: {user.tg_nik}\n"
+                    f"  - 🌐 Профиль в ВК: {user.vk_url}\n"
+                    f"  - 📱 Контактный телефон: {user.phone_nom}\n"
+                    f"  - 📝 Описание: {user.description}\n")
+            await msg.answer(confirmed_text, reply_markup=inf_kb(msg.from_user.id))
+            await state.set_state(FindUserState.select_user)
+        else:
+            await msg.answer("Гость с таким номером телефона не проживал!", reply_markup=info_kb(msg.from_user.id))
+            await state.clear()
+    elif user_tg:
+        confirmed_text = (
+                    f"<b>Информация о госте:</b>\n\n"
+                    f"  - 🙋‍♂️ Имя гостя: {user_tg.username}\n"
+                    f"  - 💬 Ник в telegram: {user_tg.tg_nik}\n"
+                    f"  - 🌐 Профиль в ВК: {user_tg.vk_url}\n"
+                    f"  - 📱 Контактный телефон: {user_tg.phone_nom}\n"
+                    f"  - 📝 Описание: {user_tg.description}\n")
+        await msg.answer(confirmed_text, reply_markup=inf_kb(msg.from_user.id))
+        await state.set_state(FindUserState.select_user)
+    elif user_vk:
+        confirmed_text = (
+                    f"<b>Информация о госте:</b>\n\n"
+                    f"  - 🙋‍♂️ Имя гостя: {user_vk.username}\n"
+                    f"  - 💬 Ник в telegram: {user_vk.tg_nik}\n"
+                    f"  - 🌐 Профиль в ВК: {user_vk.vk_url}\n"
+                    f"  - 📱 Контактный телефон: {user_vk.phone_nom}\n"
+                    f"  - 📝 Описание: {user_vk.description}\n")
+        await msg.answer(confirmed_text, reply_markup=inf_kb(msg.from_user.id))
+        await state.set_state(FindUserState.select_user)
+    else:
+        users = await UserDAO(session_without_commit).find_all()
+        id_users = []
+        for user in users:
+            if msg.text.lower() in user.username.lower():
+                id_users.append(user)
+        if id_users:
+            last_user_id = id_users[-1].id
+            home_page = False
+
+            for user in id_users:                                         
+                # Форматируем дату и время для удобства чтения
+                message_text = (
+                        f"<b>Информация о госте:</b>\n\n"
+                        f"  - 🙋‍♂️ Имя гостя: {user.username}\n"
+                        f"  - 💬 Ник в telegram: {user.tg_nik}\n"
+                        f"  - 🌐 Профиль в ВК: {user.vk_url}\n"
+                        f"  - 📱 Контактный телефон: {user.phone_nom}\n"
+                        f"  - 📝 Описание: {user.description}\n")
+                if last_user_id == user.id:
+                    home_page = True
+                await msg.answer(message_text, reply_markup=cancel_pay_book_kb(
+                                                                    user_id=msg.from_user.id,
+                                                                    userbook_id=user.id, 
+                                                                    home_page=home_page))
+
+
+
     # Проверка: 11 цифр, начинается с 8
     if (cleaned_phone.isdigit() and len(cleaned_phone) == 11 and cleaned_phone.startswith('8')):
         user = await UserDAO(session_without_commit).find_one_or_none(SCheckUser(phone_nom=cleaned_phone))
@@ -301,5 +376,12 @@ async def search_user(msg: Message, state: FSMContext, session_without_commit: A
     else:
         await msg.answer("Некорректный формат номера. Введите номер в формате +7ХХХХХХХХХХХ.")
         await state.set_state(CheckUserState.phone_nom)
+
+### Найти пользователя
+@router.callback_query(F.data == "find_user")
+async def check_user(call: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await call.message.answer('Введи контакт или имя гостя.')
+    await state.set_state(FindUserState.input_info)
 
 

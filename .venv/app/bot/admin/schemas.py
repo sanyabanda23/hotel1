@@ -7,3 +7,9 @@ class SNewPay(BaseModel):
 
 class SCheckUser(BaseModel):
     phone_nom: int
+
+class SCheckTgUser(BaseModel):
+    tg_nik: str
+
+class SCheckVkUser(BaseModel):
+    vk_url: str
