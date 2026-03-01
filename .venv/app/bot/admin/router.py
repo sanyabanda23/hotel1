@@ -12,7 +12,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.bot.booking.state import BookingState
 from app.bot.my_bookings.state import MyBookingState
 from app.bot.admin.state import OutputBookingsState, ClearState, FindUserState
-from app.bot.admin.schemas import SNewPay, SCheckUser, SCheckTgUser, SCheckVkUser
+from app.bot.admin.schemas import (SNewPay, SCheckUser, SCheckTgUser, SCheckVkUser, 
+                                  UserFilter, SUpdatePhone, SUpdateName, SUpdateDescription,
+                                  SUpdateVk, SUpdateTg)
 from app.bot.admin.kbs import main_user_kb, cancel_pay_book_kb, clear_yes_no_kb, info_kb, update_user_kb
 from app.config import settings
 from app.dao.dao import UserDAO, BookingDAO, PayDAO, RoomDAO
@@ -192,7 +194,7 @@ async def delete_booking(call: CallbackQuery, session_with_commit: AsyncSession,
 async def summ_pay_booking(call: CallbackQuery, state: FSMContext):
     book_id = int(call.data.split("_")[-1])
     await state.update_data(book_id=book_id)
-    await call.message.answer('Укажи сумму плтежа.')
+    await call.message.answer('Укажи сумму платежа.')
     await state.set_state(OutputBookingsState.sum_pay)
 
 @router.message(F.text, OutputBookingsState.sum_pay)
@@ -377,6 +379,117 @@ async def search_user(msg: Message, state: FSMContext, session_without_commit: A
         await msg.answer("Произошла ошибка при поиске. Попробуйте позже.", reply_markup=info_kb(msg.from_user.id))
         await state.clear()
 
+@router.callback_query(F.data == "back_home_update")
+async def back_home_update(call: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await call.message.edit_text('Главное меню', reply_markup=main_user_kb(call.from_user.id))
 
+@router.callback_query(F.data.startswith("phone_user_"), FindUserState.select_user)
+async def update_user_phone(callback: CallbackQuery, state: FSMContext, session_without_commit: AsyncSession):
+    selected_user = int(callback.data.split("_")[-1])
+    await state.update_data(user_id=selected_user)
+    await callback.message.answer('Укажи номер телефона гостя.')
+    await state.set_state(FindUserState.update_phone)
 
+@router.message(F.text, FindUserState.update_phone)
+async def input_phone_user(msg: Message, session_with_commit: AsyncSession, state: FSMContext):        
+    cleaned_phone = (
+        msg.text
+        .replace(' ', '').replace('(', '').replace(')', '')
+        .replace('-', '')
+    )
+    
+    # Нормализация: +7 → 8 для РФ, +380 → 380 для Украины
+    if cleaned_phone.startswith('+7'):
+        cleaned_phone = '8' + cleaned_phone[2:]
+    elif cleaned_phone.startswith('+380'):
+        cleaned_phone = '380' + cleaned_phone[4:]
+    
+    # Проверка форматов: РФ (11 цифр, начинается с 8) или Украина (12 цифр, начинается с 380)
+    is_russian = cleaned_phone.isdigit() and len(cleaned_phone) == 11 and cleaned_phone.startswith('8')
+    is_ukrainian = cleaned_phone.isdigit() and len(cleaned_phone) == 12 and cleaned_phone.startswith('380')
+    
+    if not (is_russian or is_ukrainian):
+        await msg.answer(
+            "Некорректный формат номера. "
+            "Введите номер в формате:\n"
+            "• +7ХХХХХХХХХХХ (Россия)\n"
+            "• +380ХХХХХХХХХ (Украина)"
+        )
+        return  # Остаёмся в текущем состоянии
+    
+    update_model = SUpdatePhone(phone_nom=cleaned_phone)
+    data = await state.get_data()
+    search_filters = UserFilter(id=data.get('user_id'))
+    await UserDAO(session_with_commit).update(filters=search_filters, values=update_model)
+    await msg.answer("Информация о госте обновлена!")
+    await state.set_state(FindUserState.select_user)
+
+@router.callback_query(F.data.startswith("name_user_"), FindUserState.select_user)
+async def update_user_name(callback: CallbackQuery, state: FSMContext, session_without_commit: AsyncSession):
+    selected_user = callback.data.split("_")[-1]
+    await state.update_data(user_id=selected_user)
+    await callback.message.answer('Укажи имя гостя.')
+    await state.set_state(FindUserState.update_name)
+
+@router.message(F.text, FindUserState.update_name)
+async def input_name_user(msg: Message, session_with_commit: AsyncSession, state: FSMContext):        
+    
+    update_model = SUpdateName(username=msg.text)
+    data = await state.get_data()
+    search_filters = UserFilter(id=data.get('user_id'))
+    await UserDAO(session_with_commit).update(filters=search_filters, values=update_model)
+    await msg.answer("Информация о госте обновлена!")
+    await state.set_state(FindUserState.select_user)
+
+@router.callback_query(F.data.startswith("description_user_"), FindUserState.select_user)
+async def update_user_description(callback: CallbackQuery, state: FSMContext, session_without_commit: AsyncSession):
+    selected_user = callback.data.split("_")[-1]
+    await state.update_data(user_id=selected_user)
+    await callback.message.answer('Предоставь новые описания гостя. Учти, старое описание будет удалено!')
+    await state.set_state(FindUserState.update_description)
+
+@router.message(F.text, FindUserState.update_description)
+async def input_description_user(msg: Message, session_with_commit: AsyncSession, state: FSMContext):
+    
+    update_model = SUpdateDescription(description=msg.text)
+    data = await state.get_data()
+    search_filters = UserFilter(id=data.get('user_id'))
+    await UserDAO(session_with_commit).update(filters=search_filters, values=update_model)
+    await msg.answer("Информация о госте обновлена!")
+    await state.set_state(FindUserState.select_user)
+
+@router.callback_query(F.data.startswith("vk_user_"), FindUserState.select_user)
+async def update_user_vk(callback: CallbackQuery, state: FSMContext, session_without_commit: AsyncSession):
+    selected_user = callback.data.split("_")[-1]
+    await state.update_data(user_id=selected_user)
+    await callback.message.answer('Укажи данные профиля в VK.')
+    await state.set_state(FindUserState.update_vk)
+
+@router.message(F.text, FindUserState.update_vk)
+async def input_vk_user(msg: Message, session_with_commit: AsyncSession, state: FSMContext):
+    
+    update_model = SUpdateVk(vk_url=msg.text)
+    data = await state.get_data()
+    search_filters = UserFilter(id=data.get('user_id'))
+    await UserDAO(session_with_commit).update(filters=search_filters, values=update_model)
+    await msg.answer("Информация о госте обновлена!")
+    await state.set_state(FindUserState.select_user)
+    
+@router.callback_query(F.data.startswith("tg_user_"), FindUserState.select_user)
+async def update_user_tg(callback: CallbackQuery, state: FSMContext, session_without_commit: AsyncSession):
+    selected_user = callback.data.split("_")[-1]
+    await state.update_data(user_id=selected_user)
+    await callback.message.answer('Укажи данные профиля в Telegram.')
+    await state.set_state(FindUserState.update_tg)
+
+@router.message(F.text, FindUserState.update_tg)
+async def input_tg_user(msg: Message, session_with_commit: AsyncSession, state: FSMContext):        
+    
+    update_model = SUpdateTg(tg_nik=msg.text)
+    data = await state.get_data()
+    search_filters = UserFilter(id=data.get('user_id'))
+    await UserDAO(session_with_commit).update(filters=search_filters, values=update_model)
+    await msg.answer("Информация о госте обновлена!")
+    await state.set_state(FindUserState.select_user)
 

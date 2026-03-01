@@ -12,6 +12,11 @@ class ClearState(StatesGroup):
 class FindUserState(StatesGroup):
     input_info = State()
     select_user = State()
+    update_phone = State()
+    update_name = State()
+    update_description = State()
+    update_vk = State()
+    update_tg = State()
 
 class CheckUserState(StatesGroup):
     phone_nom = State()
