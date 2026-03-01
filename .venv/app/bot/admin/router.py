@@ -302,25 +302,8 @@ async def search_user(msg: Message, state: FSMContext, session_without_commit: A
         # Проверка форматов: РФ (11 цифр, начинается с 8) или Украина (12 цифр, начинается с 380)
         is_russian = cleaned_phone.isdigit() and len(cleaned_phone) == 11 and cleaned_phone.startswith('8')
         is_ukrainian = cleaned_phone.isdigit() and len(cleaned_phone) == 12 and cleaned_phone.startswith('380')
-    
-        if is_russian or is_ukrainian:
-            user = await UserDAO(session_without_commit).find_one_or_none(SCheckUser(phone_nom=cleaned_phone))
-            if user:
-                confirmed_text = (
-                    f"<b>Информация о госте:</b>\n\n"
-                    f"  - 🙋‍♂️ Имя гостя: {user.username}\n"
-                    f"  - 💬 Ник в telegram: {user.tg_nik}\n"
-                    f"  - 🌐 Профиль в ВК: {user.vk_url}\n"
-                    f"  - 📱 Контактный телефон: {user.phone_nom}\n"
-                    f"  - 📝 Описание: {user.description}\n")
-                await msg.answer(confirmed_text, reply_markup=update_user_kb(user_id=msg.from_user.id,
-                                                                             userbook_id=user.id,
-                                                                             home_page=True))
-                await state.set_state(FindUserState.select_user)
-            else:
-                await msg.answer("Гость с таким номером телефона не проживал!", reply_markup=info_kb(msg.from_user.id))
-                await state.clear()
-        elif user_tg:
+        
+        if user_tg:
             confirmed_text = (
                     f"<b>Информация о госте:</b>\n\n"
                     f"  - 🙋‍♂️ Имя гостя: {user_tg.username}\n"
@@ -344,6 +327,23 @@ async def search_user(msg: Message, state: FSMContext, session_without_commit: A
                                                                          userbook_id=user.id,
                                                                          home_page=True))
             await state.set_state(FindUserState.select_user)
+        elif is_russian or is_ukrainian:
+            user = await UserDAO(session_without_commit).find_one_or_none(SCheckUser(phone_nom=cleaned_phone))
+            if user:
+                confirmed_text = (
+                    f"<b>Информация о госте:</b>\n\n"
+                    f"  - 🙋‍♂️ Имя гостя: {user.username}\n"
+                    f"  - 💬 Ник в telegram: {user.tg_nik}\n"
+                    f"  - 🌐 Профиль в ВК: {user.vk_url}\n"
+                    f"  - 📱 Контактный телефон: {user.phone_nom}\n"
+                    f"  - 📝 Описание: {user.description}\n")
+                await msg.answer(confirmed_text, reply_markup=update_user_kb(user_id=msg.from_user.id,
+                                                                             userbook_id=user.id,
+                                                                             home_page=True))
+                await state.set_state(FindUserState.select_user)
+            else:
+                await msg.answer("Гость с таким номером телефона не проживал!", reply_markup=info_kb(msg.from_user.id))
+                await state.clear()
         else:
             users = await UserDAO(session_without_commit).find_all()
             id_users = []
