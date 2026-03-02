@@ -282,7 +282,7 @@ async def check_user(call: CallbackQuery, state: FSMContext):
 async def search_user(msg: Message, state: FSMContext, session_without_commit: AsyncSession):
     search_text = msg.text.strip()
     if not search_text:
-        await msg.answer("Пожалуйста, введите данные для поиска.", reply_markup=info_kb(msg.from_user.id))
+        await msg.answer("Пожалуйста, введите данные для поиска.")
         return
     try:
         user_tg = await UserDAO(session_without_commit).find_one_or_none(SCheckTgUser(tg_nik=msg.text))
@@ -302,32 +302,8 @@ async def search_user(msg: Message, state: FSMContext, session_without_commit: A
         # Проверка форматов: РФ (11 цифр, начинается с 8) или Украина (12 цифр, начинается с 380)
         is_russian = cleaned_phone.isdigit() and len(cleaned_phone) == 11 and cleaned_phone.startswith('8')
         is_ukrainian = cleaned_phone.isdigit() and len(cleaned_phone) == 12 and cleaned_phone.startswith('380')
-        
-        if user_tg:
-            confirmed_text = (
-                    f"<b>Информация о госте:</b>\n\n"
-                    f"  - 🙋‍♂️ Имя гостя: {user_tg.username}\n"
-                    f"  - 💬 Ник в telegram: {user_tg.tg_nik}\n"
-                    f"  - 🌐 Профиль в ВК: {user_tg.vk_url}\n"
-                    f"  - 📱 Контактный телефон: {user_tg.phone_nom}\n"
-                    f"  - 📝 Описание: {user_tg.description}\n")
-            await msg.answer(confirmed_text, reply_markup=update_user_kb(user_id=msg.from_user.id,
-                                                                         userbook_id=user.id,
-                                                                         home_page=True))
-            await state.set_state(FindUserState.select_user)
-        elif user_vk:
-            confirmed_text = (
-                    f"<b>Информация о госте:</b>\n\n"
-                    f"  - 🙋‍♂️ Имя гостя: {user_vk.username}\n"
-                    f"  - 💬 Ник в telegram: {user_vk.tg_nik}\n"
-                    f"  - 🌐 Профиль в ВК: {user_vk.vk_url}\n"
-                    f"  - 📱 Контактный телефон: {user_vk.phone_nom}\n"
-                    f"  - 📝 Описание: {user_vk.description}\n")
-            await msg.answer(confirmed_text, reply_markup=update_user_kb(user_id=msg.from_user.id,
-                                                                         userbook_id=user.id,
-                                                                         home_page=True))
-            await state.set_state(FindUserState.select_user)
-        elif is_russian or is_ukrainian:
+    
+        if is_russian or is_ukrainian:
             user = await UserDAO(session_without_commit).find_one_or_none(SCheckUser(phone_nom=cleaned_phone))
             if user:
                 confirmed_text = (
@@ -342,8 +318,32 @@ async def search_user(msg: Message, state: FSMContext, session_without_commit: A
                                                                              home_page=True))
                 await state.set_state(FindUserState.select_user)
             else:
-                await msg.answer("Гость с таким номером телефона не проживал!", reply_markup=info_kb(msg.from_user.id))
+                await msg.answer("Гость с таким номером телефона не проживал!", reply_markup=main_user_kb(msg.from_user.id))
                 await state.clear()
+        elif user_tg:
+            confirmed_text = (
+                    f"<b>Информация о госте:</b>\n\n"
+                    f"  - 🙋‍♂️ Имя гостя: {user_tg.username}\n"
+                    f"  - 💬 Ник в telegram: {user_tg.tg_nik}\n"
+                    f"  - 🌐 Профиль в ВК: {user_tg.vk_url}\n"
+                    f"  - 📱 Контактный телефон: {user_tg.phone_nom}\n"
+                    f"  - 📝 Описание: {user_tg.description}\n")
+            await msg.answer(confirmed_text, reply_markup=update_user_kb(user_id=msg.from_user.id,
+                                                                         userbook_id=user_tg.id,
+                                                                         home_page=True))
+            await state.set_state(FindUserState.select_user)
+        elif user_vk:
+            confirmed_text = (
+                    f"<b>Информация о госте:</b>\n\n"
+                    f"  - 🙋‍♂️ Имя гостя: {user_vk.username}\n"
+                    f"  - 💬 Ник в telegram: {user_vk.tg_nik}\n"
+                    f"  - 🌐 Профиль в ВК: {user_vk.vk_url}\n"
+                    f"  - 📱 Контактный телефон: {user_vk.phone_nom}\n"
+                    f"  - 📝 Описание: {user_vk.description}\n")
+            await msg.answer(confirmed_text, reply_markup=update_user_kb(user_id=msg.from_user.id,
+                                                                         userbook_id=user_vk.id,
+                                                                         home_page=True))
+            await state.set_state(FindUserState.select_user)
         else:
             users = await UserDAO(session_without_commit).find_all()
             id_users = []
@@ -376,7 +376,7 @@ async def search_user(msg: Message, state: FSMContext, session_without_commit: A
                 await state.clear()
     except Exception as e:
         logger.error(f"Ошибка при поиске пользователя: {e}")
-        await msg.answer("Произошла ошибка при поиске. Попробуйте позже.", reply_markup=info_kb(msg.from_user.id))
+        await msg.answer("Произошла ошибка при поиске. Попробуйте позже.", reply_markup=main_user_kb(msg.from_user.id))
         await state.clear()
 
 @router.callback_query(F.data == "back_home_update")
@@ -386,7 +386,7 @@ async def back_home_update(call: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data.startswith("phone_user_"), FindUserState.select_user)
 async def update_user_phone(callback: CallbackQuery, state: FSMContext, session_without_commit: AsyncSession):
-    selected_user = int(callback.data.split("_")[-1])
+    selected_user = callback.data.split("_")[-1]
     await state.update_data(user_id=selected_user)
     await callback.message.answer('Укажи номер телефона гостя.')
     await state.set_state(FindUserState.update_phone)
@@ -417,13 +417,18 @@ async def input_phone_user(msg: Message, session_with_commit: AsyncSession, stat
             "• +380ХХХХХХХХХ (Украина)"
         )
         return  # Остаёмся в текущем состоянии
-    
-    update_model = SUpdatePhone(phone_nom=cleaned_phone)
-    data = await state.get_data()
-    search_filters = UserFilter(id=data.get('user_id'))
-    await UserDAO(session_with_commit).update(filters=search_filters, values=update_model)
-    await msg.answer("Информация о госте обновлена!")
-    await state.set_state(FindUserState.select_user)
+    user = await UserDAO(session_with_commit).find_one_or_none(SCheckUser(phone_nom=cleaned_phone))
+    if not user:
+        update_model = SUpdatePhone(phone_nom=cleaned_phone)
+        data = await state.get_data()
+        search_filters = UserFilter(id=data.get('user_id'))
+        await UserDAO(session_with_commit).update(filters=search_filters, values=update_model)
+        await msg.answer("Информация о госте обновлена!")
+        await state.set_state(FindUserState.select_user)
+    else:
+        await msg.answer("Гость с таким номером зарегистрирован в базе! Попробуй найти его по номеру телефона.", 
+                         reply_markup=main_user_kb(msg.from_user.id))
+        await state.clear()
 
 @router.callback_query(F.data.startswith("name_user_"), FindUserState.select_user)
 async def update_user_name(callback: CallbackQuery, state: FSMContext, session_without_commit: AsyncSession):
@@ -469,12 +474,18 @@ async def update_user_vk(callback: CallbackQuery, state: FSMContext, session_wit
 @router.message(F.text, FindUserState.update_vk)
 async def input_vk_user(msg: Message, session_with_commit: AsyncSession, state: FSMContext):
     
-    update_model = SUpdateVk(vk_url=msg.text)
-    data = await state.get_data()
-    search_filters = UserFilter(id=data.get('user_id'))
-    await UserDAO(session_with_commit).update(filters=search_filters, values=update_model)
-    await msg.answer("Информация о госте обновлена!")
-    await state.set_state(FindUserState.select_user)
+    user = await UserDAO(session_with_commit).find_one_or_none(SCheckVkUser(vk_url=msg.text))
+    if not user:
+        update_model = SUpdateVk(vk_url=msg.text)
+        data = await state.get_data()
+        search_filters = UserFilter(id=data.get('user_id'))
+        await UserDAO(session_with_commit).update(filters=search_filters, values=update_model)
+        await msg.answer("Информация о госте обновлена!")
+        await state.set_state(FindUserState.select_user)
+    else:
+        await msg.answer("Гость с таким профилем в VK зарегистрирован в базе! Попробуй найти его по профилю VK.", 
+                         reply_markup=main_user_kb(msg.from_user.id))
+        await state.clear()
     
 @router.callback_query(F.data.startswith("tg_user_"), FindUserState.select_user)
 async def update_user_tg(callback: CallbackQuery, state: FSMContext, session_without_commit: AsyncSession):
@@ -486,10 +497,16 @@ async def update_user_tg(callback: CallbackQuery, state: FSMContext, session_wit
 @router.message(F.text, FindUserState.update_tg)
 async def input_tg_user(msg: Message, session_with_commit: AsyncSession, state: FSMContext):        
     
-    update_model = SUpdateTg(tg_nik=msg.text)
-    data = await state.get_data()
-    search_filters = UserFilter(id=data.get('user_id'))
-    await UserDAO(session_with_commit).update(filters=search_filters, values=update_model)
-    await msg.answer("Информация о госте обновлена!")
-    await state.set_state(FindUserState.select_user)
+    user = await UserDAO(session_with_commit).find_one_or_none(SCheckTgUser(tg_nik=msg.text))
+    if not user:
+        update_model = SUpdateTg(tg_nik=msg.text)
+        data = await state.get_data()
+        search_filters = UserFilter(id=data.get('user_id'))
+        await UserDAO(session_with_commit).update(filters=search_filters, values=update_model)
+        await msg.answer("Информация о госте обновлена!")
+        await state.set_state(FindUserState.select_user)
+    else:
+        await msg.answer("Гость с таким профилем в Telegram зарегистрирован в базе! Попробуй найти его по Telegram.", 
+                         reply_markup=main_user_kb(msg.from_user.id))
+        await state.clear()
 
