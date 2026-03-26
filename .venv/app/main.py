@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 from app.bot.create_bot import dp, start_bot, bot, stop_bot
 from app.config import settings, scheduler
@@ -25,27 +26,23 @@ async def lifespan(app: FastAPI):
         id='send_booking_task',
         replace_existing=True
     )
-    webhook_url = settings.hook_url
-    await bot.set_webhook(
-        url=webhook_url,
-        allowed_updates=dp.resolve_used_update_types(),
-        drop_pending_updates=True
-    )
-    logger.success(f"Вебхук установлен: {webhook_url}")
-    yield
+    
+    logger.info("Запуск polling...")
+    try:
+        # Запускаем polling в фоновом режиме
+        polling_task = asyncio.create_task(dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types()))
+        yield
+    finally:
+        logger.info("Остановка polling...")
+        # Отменяем задачу polling
+        polling_task.cancel()
+        try:
+            await polling_task
+        except asyncio.CancelledError:
+            pass
+
     logger.info("Бот остановлен...")
     await stop_bot()
     scheduler.shutdown()
 
 app = FastAPI(lifespan=lifespan)
-
-@app.post("/webhook")
-async def webhook(request: Request) -> None:
-    logger.info("Получен запрос с вебхука.")
-    try:
-        update_data = await request.json()
-        update = Update.model_validate(update_data, context={"bot": bot})
-        await dp.feed_update(bot, update)
-        logger.info("Обновление успешно обработано.")
-    except Exception as e:
-        logger.error(f"Ошибка при обработке обновления с вебхука: {e}")
